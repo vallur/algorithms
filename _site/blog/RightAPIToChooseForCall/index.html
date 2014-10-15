@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html class="fuelux" lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Rest Over JSON or plain old sockets for communication</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <link href="http://fuelcdn.com/fuelux/2.2/css/fuelux.css" rel="stylesheet" /> 
+	<link href="http://fuelcdn.com/fuelux/2.2/css/fuelux-responsive.css" rel="stylesheet" />
+	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js" type="text/javascript"></script>
+	<script src="http://fuelcdn.com/fuelux/2.2/loader.min.js" type="text/javascript"></script>
+    <link href="/css/docs.css" rel="stylesheet">
+    <link href="/js/google-code-prettify/prettify.css" rel="stylesheet">	
+	<link rel="shortcut icon" href="/favicon.ico">    
+  </head>
+  <body data-spy="scroll" data-target=".subnav" data-offset="50">
+	<div class="navbar navbar-fixed-top">
+  <div class="navbar-inner">
+	<div class="container">
+	  <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+		<span class="icon-bar"></span>
+		<span class="icon-bar"></span>
+		<span class="icon-bar"></span>
+	  </a>
+	  <a class="brand" href="http://Vallur.github.com">Blog Dedicated for Banyan. Under Construction!</a>
+	  <div class="nav-collapse">
+		<ul class="nav">		  
+		  <li class="">
+			<a href="http://vallur.github.com"><i class="icon-home"></i> Home</a>
+		  </li>
+		  <li class="dropdown">
+			<a href="#" class="dropdown-toggle" data-toggle="dropdown"><i class="icon-comment"></i> Social <b class="caret"></b></a>
+				<ul class="dropdown-menu">										
+					<li class=""><a href="http://github.com/banyan" rel="tooltip" title="Go to github.com/erjjones" target="_blank">GitHub</a></li>
+					<li class=""><a href="http://www.linkedin.com/pub/vallur-narasimhan/5/219/570/" rel="tooltip" title="Go to LinkedIn profile" target="_blank">LinkedIn</a></li>										
+				</ul>
+			 </li>
+		</ul>		
+	  </div>
+	</div>
+  </div>
+</div>
+  
+	<div class="container">	
+		<div class="marketing">
+		<div class="content">    
+	<script src="https://apis.google.com/js/platform.js" async defer></script>
+<script src="//platform.linkedin.com/in.js" type="text/javascript">lang: en_US</script>
+<div id="fb-root"></div>
+<script>(function(d, s, id) {
+  var js, fjs = d.getElementsByTagName(s)[0];
+  if (d.getElementById(id)) return;
+  js = d.createElement(s); js.id = id;
+  js.src = "//connect.facebook.net/en_US/sdk.js#xfbml=1&version=v2.0";
+  fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));</script>
+<script type="text/javascript">
+		/* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+		var disqus_shortname = 'vallur'; // required: replace example with your forum shortname
+		var disqus_identifier = '/blog/RightAPIToChooseForCall';
+		var disqus_url = 'http://vallur.github.com/blog/RightAPIToChooseForCall';
+
+		/* * * DON'T EDIT BELOW THIS LINE * * */
+		(function () {
+			var s = document.createElement('script'); s.async = true;
+			s.type = 'text/javascript';
+			s.src = 'http://' + disqus_shortname + '.disqus.com/count.js';
+			(document.getElementsByTagName('HEAD')[0] || document.getElementsByTagName('BODY')[0]).appendChild(s);
+		}());
+	</script>
+<br/>
+		<h1>Rest Over JSON or plain old sockets for communication</h1>
+<br/>
+<!--	<div class="span3 column">-->
+		<strong>August 31, 2014 <small>.  <a href="http://vallur.github.com/blog/RightAPIToChooseForCall#disqus_thread" data-disqus-identifier="/blog/RightAPIToChooseForCall">Comments</a></small></strong>
+		<br/><small>Tags:  <a href="/tags/java" title="View posts tagged with &quot;java&quot;"><u>java</u></a>     <a href="/tags/REST" title="View posts tagged with &quot;REST&quot;"><u>REST</u></a>     <a href="/tags/SOA" title="View posts tagged with &quot;SOA&quot;"><u>SOA</u></a>     <a href="/tags/JSON" title="View posts tagged with &quot;JSON&quot;"><u>JSON</u></a>     <a href="/tags/XML" title="View posts tagged with &quot;XML&quot;"><u>XML</u></a>    </small>
+<!--	</div>		-->
+<!--	<div class="span6 column">-->
+		<p class="pull-right"> <a href="/blog/Serialization-continues" title="Previous Post: Serialization - Continues...."><i class="icon-chevron-left"></i></a> 	    	<a href="/blog/CompressionMetrics" title="Next Post: Compression - what is the right API to use?"><i class="icon-chevron-right"></i></a> 	 </p>  
+<!--	</div>-->
+</div>
+<!--<div class="row">-->&nbsp;<div class="g-plusone"></div><script type="IN/Share" data-counter="right"></script>&nbsp;<div class="fb-like" data-href="http://vallur.github.com/blog/RightAPIToChooseForCall" data-layout="button_count" data-action="like" data-show-faces="false" data-share="false"></div>&nbsp;<iframe class="github-btn" src="http://ghbtns.com/github-btn.html?user=vallur&repo=vallur.github.com&type=watch&count=true" allowtransparency="true" frameborder="0" scrolling="0" width="80px" height="20px"></iframe>&nbsp;<iframe class="github-btn" src="http://ghbtns.com/github-btn.html?user=vallur&repo=vallur.github.com&type=fork&count=true" allowtransparency="true" frameborder="0" scrolling="0" width="98px" height="20px"></iframe>
+<!--</div>-->
+<br/><hr>
+
+    <p><b>ReST</b> - <b>R</b>epresentational <b>S</b>tate <b>T</b>ransfer) over JSON (<b>J</b>ava<b>S</b>cript <b>O</b>bject <b>N</b>otation) is the 1st choice when we try to expose services to the outside world. Though in recent times Web Sockets are making developers think as a replacement as REST APIS are too chatty and increase the messages sent over the network.</p>
+
+<p>The community choose ReST over SOAP as ReST is further light weight and doesnot need to adhere to a specific schema like SOAP. ReST is light weight built on top of the http stateless protocol where it supports the operations of CRUD. In short it is no way different from how we write a servlet or any other webpage, in short just a browser is enough to communicate with ReST. The framework is more fine tuned for services that can be represented in the form of resources ex:- product will be a resource and we would suppot the below 4 operations on product with rest.</p>
+
+<p><b>C</b>reate, <b>R</b>ead, <b>U</b>pdate, <b>D</b>elete operations can be used to access a resource using the html methods POST, GET, PUT and DELETE to do the respective operation.</p>
+
+<p><a href="http://www.mkyong.com/webservices/jax-rs/restfull-java-client-with-java-net-url/" title="Http Rest methods">MyKong</a>  has a simple example to show how the Get and POST are implemented and accessed with ReST service.</p>
+
+<p>Some of the advantages of using ReST</p>
+
+<ul>
+<li>ReST has all the protocol and error codes defined for most of the application needs and can be used.</li>
+<li>It also has support for binary octect stream so that protobuf serialization can be used with little bit of coding added.</li>
+<li>Caching can be implemented using most of the general purpose http cache applications</li>
+<li>All exisiting major frameworks using IIS/Tomcat/Jetty support ReST by default.</li>
+<li>It is language independent we can use our browser or CURL as a client to make changes.</li>
+</ul>
+
+
+<p>Disadvantages of using ReST. I have to be clear when i say disadvantages of ReST, it is mostly the disadvantages of how the servers and the protocol is implemented using the ReSTFUL architecture.</p>
+
+<ul>
+<li>HTTP is chatty. for example a simple request can have the below headers in exchange.</li>
+<li>Serialization and deserialization to JSON or XML is expensive for memory as well as performance.</li>
+</ul>
+
+
+<h4>HttpRequest</h4>
+
+<pre><code class="">GET http://localhost:9998/helloworld HTTP/1.1\r\n
+Accept-Encoding: gzip,deflate\r\n
+Host: localhost:9998\r\n
+Connection: Keep-Alive\r\n
+User-Agent: Apache-HttpClient/4.1.1 (java 1.5)\r\n
+</code></pre>
+
+<h4>HttpResponse</h4>
+
+<pre><code>HTTP/1.1 200 OK\r\n
+Transfer-encoding: chunked\r\n
+Content-type: text/json\r\n
+Date: Wed, 20 Aug 2014 23:34:17 GMT\r\n
+ \r\n
+Hello World\r\n
+</code></pre>
+
+<p>A total of 285*2 (548) bytes transferred to and from the service. Considering SOAP the ReSTFul Services are less chatty. I used SOAP UI to get these headers and I used the browser it would result in more byte transfer.</p>
+
+<ul>
+<li>It is stateless that means there can be only one request/response over a single connection.
+
+<ul>
+<li>This does not allow the client to have connection pooling. This is a severe drawback when we want to have a synchronous connection between server and client to perform multiple operations or transfer multiple requests/response over a single connection.</li>
+<li>If a client is sending 1000's of requests there needs to be 1000's of connections which translates to 1000's of short lived threads.</li>
+</ul>
+</li>
+<li>Post method values are Base64 Encoded values. So the actual data transfered on a post request is increased for padding by  4 * [n/3]. If we send 100 bytes for update or create that would be translated into 133 bytes + headers. Base 64 is not secure and it adds unnecessary overhead. But would be ideal for a Http based application.</li>
+<li>Is slower than other native protocols as it needs to verify security and message formats of headers for each call.</li>
+</ul>
+
+
+<p>In order to verify the above theory I tried to do performance tests and figure out the metrics</p>
+
+<p>Code used to perf test using URLConnection</p>
+
+<script src="https://gist.github.com/vallur/1f062f73a3148565f6f9.js"></script>
+
+
+<p>Code for client thread to execute multiple gets at a time</p>
+
+<script src="https://gist.github.com/vallur/2a03147fd076ef0cbc94.js"></script>
+
+
+<p>Test results : -
+<code>
+total time spent for 2000000 calls - 24 mins 52 secs 177 ms 539 Us
+</code></p>
+
+<p>Test results from JVM metrics :-</p>
+
+<p><img src="/img/posts/RestClient.png" alt="RestClient metrics" /></p>
+
+<p>Metrics with the httpcomponents is way worse than using urlconnection so not showing that here.</p>
+
+<h4>WebSockets</h4>
+
+<p>Websockets are a viable alternative to ReST API. But they are very simillar in the sense each request has similar kind of headers transfered back and forth. A socket can be upgraded and used for full duplex communication which is a biggest advantage over ReST. This advantage makes it viable to be used for writing a driver API for database based solutions. The biggest disadvantage with websockets is it is a very basic infrastructure on which we will have to build everything. If I have to choose WebSockets I can choose Sockets.</p>
+
+<p>Test results : -
+<code>
+total time spent for 2000000 calls - 13 mins 45 secs 636 ms 583 Us
+</code></p>
+
+<p>Test results from JVM metrics :-</p>
+
+<p><img src="/img/posts/WebSockets.png" alt="RestClient metrics" /></p>
+
+<h4>Sockets</h4>
+
+<p>I thought about my first java class where we built a chat application using plain old sockets.
+When we want to support more than 50,000 requests per second per server, the biggest bottleneck is the size of the message sent back and forth over the network. A gigabit network can support a maximum number of bytes per second is ((1024<sup>3</sup>)/8)*60% leaving 40% for other system monitoring overhead = 80,530,636 bytes. Any distributed No-SQL solution will have to deal with its own overhead if i assume we get 40% writes and 60% reads on a specific machine that means 40% of the requests have to have a hop to another machine to resolve conflict that leaves us with just 60% of the network of 80,530,636 = 48,318,381 bytes.</p>
+
+<p>If we use 700 bytes for communication for each read/write we end up with 69,026 requests per second. I would say if the system keeps its data communication in this mark it should be ok in meeting the 50,000 to 70,000 requests per second per machine. If we assume that traces are run on the system we will be loosing a lot of bandwidth for that. It is safe to assume that by implementing using sockets and having very low overhead for point to point communication this system can support minimum 50,000 requests per second per node on a healthy state.</p>
+
+<p>Picture below shows what the client server code does.
+<img src="/img/posts/clientserver.png" alt="Client server architecture for banyan" /></p>
+
+<p>The code used to verify performance with client API calls.</p>
+
+<script src="https://gist.github.com/vallur/da13b54d6bd9b73567a2.js"></script>
+
+
+<p>Test results : -
+<code>
+total time taken for completion of 2000000 calls - 8 mins 37 secs 780 ms 122 Us
+</code></p>
+
+<p>Test results from JVM metrics :-</p>
+
+<p><img src="/img/posts/SocketClient.png" alt="SocketClient metrics" /></p>
+
+<p>Server side code for the socket</p>
+
+<script src="https://gist.github.com/vallur/fd298d23db3730036b8c.js"></script>
+
+
+<p>The class responsible for servicing simple requests</p>
+
+<script src="https://gist.github.com/vallur/133259b47e46a7240085.js"></script>
+
+
+<p>Test metrics from server side :-</p>
+
+<p><img src="/img/posts/socketServer.png" alt="SocketClient metrics" /></p>
+
+<p>From this, More than 50,000 requests per second is defenitely acheivable on the right hardware.</p>
+
+<p>Advantages:-</p>
+
+<ul>
+<li>Behave very simmillar to ReST and can also listen to port 80.</li>
+<li>very light weight</li>
+<li>Extreme performance on speed which allows to meet extreme amount of client requests per second.</li>
+</ul>
+
+
+<p>Disadvantages:-</p>
+
+<ul>
+<li>will have to implement everything from scratch.</li>
+<li>Security will have to be implemented.</li>
+<li>Request and response is not human readable. Not exactly a disadvantage as Rest post requests are base 64 encoded which is not human readable either.</li>
+</ul>
+
+
+<p>The hardware used for the performance tests are below:</p>
+
+<ul>
+<li>Server - 2GHz Intel Core i7 16 GB 1600 DDR3 RAM - OSX 10.9.4</li>
+<li>Client - 2.7 GHz Intel(R) Core i5 8 GB RAM - Windows 8.1</li>
+<li>Java version - 1.8.0_05</li>
+<li>Network Switch/Link speed - 100 Mbps. -- This is the major culprit for the slow speed.</li>
+</ul>
+
+
+<p>The total round trip time depends on the network and i have seen average network lag of 300 Us to 9 ms per request for a communication bytesize of less than 1k for any of the above technologies we choose. This network lag begs for the need for compression, when the message size increases which i shall discuss in my next blog.</p>
+
+<p>The above tests are not a apple to apple comparison as the tests on websockets and Rest API i used hello world example and in the socket case I used actual data gets from Banyan with byte size varying from 500 bytes to 1200 bytes of actual data including serialization and deserialization.</p>
+
+<p>For the reason of security and availability of admin operations it would not be a bad idea to implement a tomcat application on top of this framework. Just a thought for the future.</p>
+
+<div class="row">   
+    <div class="span9 column">
+            <p class="pull-right"> <a href="/blog/Serialization-continues" title="Previous Post: Serialization - Continues...."><i class="icon-chevron-left"></i></a>           <a href="/blog/CompressionMetrics" title="Next Post: Compression - what is the right API to use?"><i class="icon-chevron-right"></i></a>     </p>  
+    </div>
+</div>
+
+
+
+
+<p><div class="row"> <br/>
+    <div class="span9 columns">  <br/>
+        <h2>Comments Section</h2>
+        <p>Feel free to comment on the post but keep it clean and on topic.</p>
+        <div id="fb-root"></div>
+<script>(function(d, s, id) {
+  var js, fjs = d.getElementsByTagName(s)[0];
+  if (d.getElementById(id)) return;
+  js = d.createElement(s); js.id = id;
+  js.src = "//connect.facebook.net/en_US/sdk.js#xfbml=1&amp;version=v2.0";
+  fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));</script>
+<div class="fb-comments" data-href="http://vallur.github.io/blog/RightAPIToChooseForCall" data-numposts="5" data-width="700" data-colorscheme="light"></div>
+</div></p>
+
+<p><!-- Twitter -->
+<script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src="//platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script></p>
+
+<p><!-- Google + -->
+<script type="text/javascript">
+  (function() {
+    var po = document.createElement('script'); po.type = 'text/javascript'; po.async = true;
+    po.src = 'https://apis.google.com/js/plusone.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(po, s);
+  })();
+</script></p>
+		
+</div>
+
+		</div>		 
+	 </div>   
+	<div id="fb-root"></div>
+<script>(function(d, s, id) {
+  var js, fjs = d.getElementsByTagName(s)[0];
+  if (d.getElementById(id)) return;
+  js = d.createElement(s); js.id = id;
+  js.src = "//connect.facebook.net/en_US/sdk.js#xfbml=1&version=v2.0";
+  fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));</script>
+<script src="https://apis.google.com/js/platform.js" async defer></script>
+<script src="//platform.linkedin.com/in.js" type="text/javascript">lang: en_US</script>
+<footer class="footer">
+  <div class="container">
+<!--<div class="row">-->&nbsp;<div class="g-plusone"></div><script type="IN/Share" data-counter="right"></script>&nbsp;<div class="fb-like" data-href="http://vallur.github.com/blog/RightAPIToChooseForCall" data-layout="button_count" data-action="like" data-show-faces="false" data-share="false"></div>&nbsp;<iframe class="github-btn" src="http://ghbtns.com/github-btn.html?user=vallur&repo=vallur.github.com&type=watch&count=true" allowtransparency="true" frameborder="0" scrolling="0" width="80px" height="20px"></iframe>&nbsp;<iframe class="github-btn" src="http://ghbtns.com/github-btn.html?user=vallur&repo=vallur.github.com&type=fork&count=true" allowtransparency="true" frameborder="0" scrolling="0" width="98px" height="20px"></iframe>	<p class="pull-right"> <a href="/blog/Serialization-continues" title="Previous Post: Serialization - Continues....">&laquo; Previous Blog Post</a> 	  |  <a href="#">Back to top</a>  |   	<a href="/blog/CompressionMetrics" title="Next Post: Compression - what is the right API to use?">Next Blog Post &raquo; </a> 	 </p>        
+	<p>Page last generated on October 15, 2014</p>
+	<p>If need be, <a href="https://github.com/vallur/Feedback/issues/new" title="Leave feedback for Vallur"  target="_blank" >leave me some feedback</a>.</p>	
+	<script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src="//platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script>	
+	<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-53607051-1', 'auto');
+  ga('send', 'pageview');
+
+</script>
+  </div>
+</footer>
+
+    <script type="text/javascript" src="http://platform.twitter.com/widgets.js"></script>    
+    
+	<script src="/js/custom.js" type="text/javascript"></script>	
+	
+	<script type="text/javascript">
+		/* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+		var disqus_shortname = 'vallur'; // required: replace example with your forum shortname
+
+		/* * * DON'T EDIT BELOW THIS LINE * * */
+		(function () {
+			var s = document.createElement('script'); s.async = true;
+			s.type = 'text/javascript';
+			s.src = 'http://' + disqus_shortname + '.disqus.com/count.js';
+			(document.getElementsByTagName('HEAD')[0] || document.getElementsByTagName('BODY')[0]).appendChild(s);
+		}());
+	</script>
+	
+	<!-- Google Analytics -->
+	<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-53607051-1', 'auto');
+  ga('send', 'pageview');
+
+</script>
+  </body>
+</html>

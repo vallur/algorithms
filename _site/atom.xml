@@ -1,0 +1,2271 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+ 
+ <title>Eric Jones</title>
+ <link href="http://vallur.github.io/atom.xml" rel="self"/>
+ <link href="http://vallur.github.io/"/>
+ <updated>2014-10-15T10:53:55-07:00</updated>
+ <id>http://vallur.github.com</id>
+ <author>
+   <name>Eric Jones</name>
+ </author>
+ 
+ 
+ <entry>
+   <title>Compression - what is the right API to use?</title>
+   <link href="http://vallur.github.com/blog/CompressionMetrics"/>
+   <updated>2014-09-01T00:00:00-07:00</updated>
+   <id>http://vallur.github.com/blog/CompressionMetrics</id>
+   <content type="html">&lt;p&gt;Compression is used by a system to support many of the below advantages&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Send large packets over network faster.
+
+&lt;ul&gt;
+&lt;li&gt;When the communication link is slower the data can be sent faster as we will be sending less number of bytes.&lt;/li&gt;
+&lt;li&gt;Compression would be generally advantageous if request or response size is more than 1000 bytes, to reduce time spent on the network.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;When we are constrained by space data can be compressed and stored.&lt;/li&gt;
+&lt;li&gt;compression would also help while storing to a slow media.
+
+&lt;ul&gt;
+&lt;li&gt;We typicaly use SSD or HDD for storing data for long term storage which are 72 to 150+ times slower than temporary storage RAM. This is the reason why most high transactional systems are more memory bound.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+
+
+&lt;p&gt;Trying to compress and uncompress large number of bytes is counter productive so we would try to find a high bar and stick with that to understand the boundaries.&lt;/p&gt;
+
+&lt;p&gt;There are two flavors of famous compression algorithms&lt;/p&gt;
+
+&lt;p&gt;Huffman (Tree Based) - Inflate/Defelate, GZip
+Lempel-ziv compression (Dictionary based) - LZ4, LZF, Snappy&lt;/p&gt;
+
+&lt;p&gt;Now for some metrics on the different code that can be used for compression and de-compression using different API. In the below examples we will be only looking at the fastest compression/de-compression with the different API available with their speed and size of compression.&lt;/p&gt;
+
+&lt;p&gt;GZip code -&lt;/p&gt;
+
+&lt;script src=&quot;https://gist.github.com/vallur/dd9c25923548d0c3b4d1.js&quot;&gt;&lt;/script&gt;
+
+
+&lt;p&gt;Snappy code -&lt;/p&gt;
+
+&lt;script src=&quot;https://gist.github.com/vallur/0c0c552fd3e7f650570d.js&quot;&gt;&lt;/script&gt;
+
+
+&lt;p&gt;LZF - ning compress code -&lt;/p&gt;
+
+&lt;script src=&quot;https://gist.github.com/vallur/b693eb7fa1cb84b71995.js&quot;&gt;&lt;/script&gt;
+
+
+&lt;p&gt;Deflator/Inflator code -&lt;/p&gt;
+
+&lt;script src=&quot;https://gist.github.com/vallur/fa2b95100a51afa856d1.js&quot;&gt;&lt;/script&gt;
+
+
+&lt;p&gt;LZ4 compression&lt;/p&gt;
+
+&lt;script src=&quot;https://gist.github.com/vallur/a39ff248e98be4c1146c.js&quot;&gt;&lt;/script&gt;
+
+
+&lt;p&gt;common code used by all the above API&#39;s -&lt;/p&gt;
+
+&lt;script src=&quot;https://gist.github.com/vallur/6b33e8f2db1bbbf3f26a.js&quot;&gt;&lt;/script&gt;
+
+
+&lt;p&gt;Let us see different performance and compression metrics of the different flavors listed above and their advantages&lt;/p&gt;
+
+&lt;p&gt;Below graph shows the size of compression for different compression algorithms.&lt;/p&gt;
+
+&lt;p&gt; &lt;img src=&quot;/img/posts/compresssize.png&quot; alt=&quot;compression size&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Below graph shows the time taken in underseconds but displayed in milliseconds for un-compressing bytes based on the size&lt;/p&gt;
+
+&lt;p&gt; &lt;img src=&quot;/img/posts/uncompresstime.png&quot; alt=&quot;un-compression size&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Below graph shows the time taken in underseconds but displayed in milliseconds for compression based on the size&lt;/p&gt;
+
+&lt;p&gt; &lt;img src=&quot;/img/posts/compressiontime.png&quot; alt=&quot;compression size&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;My experience on compression API is all the implementations that are stream based are too slow as they will have to use frequent allocation of memory bytes which results in frequent movement of bytes to resize arrays
+hence too much wastage of memory as well as processing. It is always better to preallocate in the begining and then shrink the buffer if needed resulting in speed of processing.&lt;/p&gt;
+
+&lt;p&gt;total compression and uncompression time should be close to O(k) + O(n) + O(t)&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;k&amp;lt;n and t&amp;lt;n&lt;/li&gt;
+&lt;li&gt;k is total size of compressed buffer&lt;/li&gt;
+&lt;li&gt;n is total size of uncompressed buffer&lt;/li&gt;
+&lt;li&gt;t is the total size of dictionary or repetitive values&lt;/li&gt;
+&lt;/ul&gt;
+
+
+&lt;p&gt;Compression using huffman algorithm is slow as it has to build the tree structure that represents the total buffer.&lt;/p&gt;
+
+&lt;p&gt;Based on the above metrics
+The order of preference for compression based on size would be&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;GZIP&lt;/li&gt;
+&lt;li&gt;Deflate/Inflate&lt;/li&gt;
+&lt;li&gt;Snappy&lt;/li&gt;
+&lt;li&gt;LZF&lt;/li&gt;
+&lt;li&gt;LZ4&lt;/li&gt;
+&lt;/ol&gt;
+
+
+&lt;p&gt;The order of preference for time taken for compression/decompression would be&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;LZ4&lt;/li&gt;
+&lt;li&gt;Snappy&lt;/li&gt;
+&lt;li&gt;Deflate/Inflate&lt;/li&gt;
+&lt;li&gt;LZF&lt;/li&gt;
+&lt;li&gt;GZIP&lt;/li&gt;
+&lt;/ol&gt;
+
+
+&lt;p&gt;LZ4 is the clear winner when it comes to speed and next winner is deflate/inflate API when saving space.&lt;/p&gt;
+
+&lt;p&gt;We need to be careful while choosing Deflate/Inflate as we might not get the bang for while using a slow server, we may spend too much time on compression rather than network time if we use deflate/inflate compressions. Banyan can be configured to use LZ4, Snappy, Deflate/Inflate algorithms.&lt;/p&gt;
+
+&lt;div class=&quot;row&quot;&gt;   
+    &lt;div class=&quot;span9 column&quot;&gt;
+            &lt;p class=&quot;pull-right&quot;&gt; &lt;a href=&quot;/blog/RightAPIToChooseForCall&quot; title=&quot;Previous Post: Rest Over JSON or plain old sockets for communication&quot;&gt;&lt;i class=&quot;icon-chevron-left&quot;&gt;&lt;/i&gt;&lt;/a&gt;       &lt;/p&gt;  
+    &lt;/div&gt;
+&lt;/div&gt;
+
+
+
+
+&lt;p&gt;&lt;div class=&quot;row&quot;&gt; &lt;br/&gt;
+    &lt;div class=&quot;span9 columns&quot;&gt;  &lt;br/&gt;
+        &lt;h2&gt;Comments Section&lt;/h2&gt;
+        &lt;p&gt;Feel free to comment on the post but keep it clean and on topic.&lt;/p&gt;
+        &lt;div id=&quot;fb-root&quot;&gt;&lt;/div&gt;
+&lt;script&gt;(function(d, s, id) {
+  var js, fjs = d.getElementsByTagName(s)[0];
+  if (d.getElementById(id)) return;
+  js = d.createElement(s); js.id = id;
+  js.src = &quot;//connect.facebook.net/en_US/sdk.js#xfbml=1&amp;amp;version=v2.0&quot;;
+  fjs.parentNode.insertBefore(js, fjs);
+}(document, &#39;script&#39;, &#39;facebook-jssdk&#39;));&lt;/script&gt;
+&lt;div class=&quot;fb-comments&quot; data-href=&quot;http://vallur.github.io/blog/CompressionMetrics&quot; data-numposts=&quot;5&quot; data-width=&quot;700&quot; data-colorscheme=&quot;light&quot;&gt;&lt;/div&gt;
+&lt;/div&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;!-- Twitter --&gt;
+&lt;script&gt;!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=&quot;//platform.twitter.com/widgets.js&quot;;fjs.parentNode.insertBefore(js,fjs);}}(document,&quot;script&quot;,&quot;twitter-wjs&quot;);&lt;/script&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;!-- Google + --&gt;
+&lt;script type=&quot;text/javascript&quot;&gt;
+  (function() {
+    var po = document.createElement(&#39;script&#39;); po.type = &#39;text/javascript&#39;; po.async = true;
+    po.src = &#39;https://apis.google.com/js/plusone.js&#39;;
+    var s = document.getElementsByTagName(&#39;script&#39;)[0]; s.parentNode.insertBefore(po, s);
+  })();
+&lt;/script&gt;&lt;/p&gt;
+</content>
+ </entry>
+ 
+ <entry>
+   <title>Rest Over JSON or plain old sockets for communication</title>
+   <link href="http://vallur.github.com/blog/RightAPIToChooseForCall"/>
+   <updated>2014-08-31T00:00:00-07:00</updated>
+   <id>http://vallur.github.com/blog/RightAPIToChooseForCall</id>
+   <content type="html">&lt;p&gt;&lt;b&gt;ReST&lt;/b&gt; - &lt;b&gt;R&lt;/b&gt;epresentational &lt;b&gt;S&lt;/b&gt;tate &lt;b&gt;T&lt;/b&gt;ransfer) over JSON (&lt;b&gt;J&lt;/b&gt;ava&lt;b&gt;S&lt;/b&gt;cript &lt;b&gt;O&lt;/b&gt;bject &lt;b&gt;N&lt;/b&gt;otation) is the 1st choice when we try to expose services to the outside world. Though in recent times Web Sockets are making developers think as a replacement as REST APIS are too chatty and increase the messages sent over the network.&lt;/p&gt;
+
+&lt;p&gt;The community choose ReST over SOAP as ReST is further light weight and doesnot need to adhere to a specific schema like SOAP. ReST is light weight built on top of the http stateless protocol where it supports the operations of CRUD. In short it is no way different from how we write a servlet or any other webpage, in short just a browser is enough to communicate with ReST. The framework is more fine tuned for services that can be represented in the form of resources ex:- product will be a resource and we would suppot the below 4 operations on product with rest.&lt;/p&gt;
+
+&lt;p&gt;&lt;b&gt;C&lt;/b&gt;reate, &lt;b&gt;R&lt;/b&gt;ead, &lt;b&gt;U&lt;/b&gt;pdate, &lt;b&gt;D&lt;/b&gt;elete operations can be used to access a resource using the html methods POST, GET, PUT and DELETE to do the respective operation.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;http://www.mkyong.com/webservices/jax-rs/restfull-java-client-with-java-net-url/&quot; title=&quot;Http Rest methods&quot;&gt;MyKong&lt;/a&gt;  has a simple example to show how the Get and POST are implemented and accessed with ReST service.&lt;/p&gt;
+
+&lt;p&gt;Some of the advantages of using ReST&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;ReST has all the protocol and error codes defined for most of the application needs and can be used.&lt;/li&gt;
+&lt;li&gt;It also has support for binary octect stream so that protobuf serialization can be used with little bit of coding added.&lt;/li&gt;
+&lt;li&gt;Caching can be implemented using most of the general purpose http cache applications&lt;/li&gt;
+&lt;li&gt;All exisiting major frameworks using IIS/Tomcat/Jetty support ReST by default.&lt;/li&gt;
+&lt;li&gt;It is language independent we can use our browser or CURL as a client to make changes.&lt;/li&gt;
+&lt;/ul&gt;
+
+
+&lt;p&gt;Disadvantages of using ReST. I have to be clear when i say disadvantages of ReST, it is mostly the disadvantages of how the servers and the protocol is implemented using the ReSTFUL architecture.&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;HTTP is chatty. for example a simple request can have the below headers in exchange.&lt;/li&gt;
+&lt;li&gt;Serialization and deserialization to JSON or XML is expensive for memory as well as performance.&lt;/li&gt;
+&lt;/ul&gt;
+
+
+&lt;h4&gt;HttpRequest&lt;/h4&gt;
+
+&lt;pre&gt;&lt;code class=&quot;&quot;&gt;GET http://localhost:9998/helloworld HTTP/1.1\r\n
+Accept-Encoding: gzip,deflate\r\n
+Host: localhost:9998\r\n
+Connection: Keep-Alive\r\n
+User-Agent: Apache-HttpClient/4.1.1 (java 1.5)\r\n
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h4&gt;HttpResponse&lt;/h4&gt;
+
+&lt;pre&gt;&lt;code&gt;HTTP/1.1 200 OK\r\n
+Transfer-encoding: chunked\r\n
+Content-type: text/json\r\n
+Date: Wed, 20 Aug 2014 23:34:17 GMT\r\n
+ \r\n
+Hello World\r\n
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;A total of 285*2 (548) bytes transferred to and from the service. Considering SOAP the ReSTFul Services are less chatty. I used SOAP UI to get these headers and I used the browser it would result in more byte transfer.&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;It is stateless that means there can be only one request/response over a single connection.
+
+&lt;ul&gt;
+&lt;li&gt;This does not allow the client to have connection pooling. This is a severe drawback when we want to have a synchronous connection between server and client to perform multiple operations or transfer multiple requests/response over a single connection.&lt;/li&gt;
+&lt;li&gt;If a client is sending 1000&#39;s of requests there needs to be 1000&#39;s of connections which translates to 1000&#39;s of short lived threads.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;Post method values are Base64 Encoded values. So the actual data transfered on a post request is increased for padding by  4 * [n/3]. If we send 100 bytes for update or create that would be translated into 133 bytes + headers. Base 64 is not secure and it adds unnecessary overhead. But would be ideal for a Http based application.&lt;/li&gt;
+&lt;li&gt;Is slower than other native protocols as it needs to verify security and message formats of headers for each call.&lt;/li&gt;
+&lt;/ul&gt;
+
+
+&lt;p&gt;In order to verify the above theory I tried to do performance tests and figure out the metrics&lt;/p&gt;
+
+&lt;p&gt;Code used to perf test using URLConnection&lt;/p&gt;
+
+&lt;script src=&quot;https://gist.github.com/vallur/1f062f73a3148565f6f9.js&quot;&gt;&lt;/script&gt;
+
+
+&lt;p&gt;Code for client thread to execute multiple gets at a time&lt;/p&gt;
+
+&lt;script src=&quot;https://gist.github.com/vallur/2a03147fd076ef0cbc94.js&quot;&gt;&lt;/script&gt;
+
+
+&lt;p&gt;Test results : -
+&lt;code&gt;
+total time spent for 2000000 calls - 24 mins 52 secs 177 ms 539 Us
+&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;Test results from JVM metrics :-&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/img/posts/RestClient.png&quot; alt=&quot;RestClient metrics&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Metrics with the httpcomponents is way worse than using urlconnection so not showing that here.&lt;/p&gt;
+
+&lt;h4&gt;WebSockets&lt;/h4&gt;
+
+&lt;p&gt;Websockets are a viable alternative to ReST API. But they are very simillar in the sense each request has similar kind of headers transfered back and forth. A socket can be upgraded and used for full duplex communication which is a biggest advantage over ReST. This advantage makes it viable to be used for writing a driver API for database based solutions. The biggest disadvantage with websockets is it is a very basic infrastructure on which we will have to build everything. If I have to choose WebSockets I can choose Sockets.&lt;/p&gt;
+
+&lt;p&gt;Test results : -
+&lt;code&gt;
+total time spent for 2000000 calls - 13 mins 45 secs 636 ms 583 Us
+&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;Test results from JVM metrics :-&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/img/posts/WebSockets.png&quot; alt=&quot;RestClient metrics&quot; /&gt;&lt;/p&gt;
+
+&lt;h4&gt;Sockets&lt;/h4&gt;
+
+&lt;p&gt;I thought about my first java class where we built a chat application using plain old sockets.
+When we want to support more than 50,000 requests per second per server, the biggest bottleneck is the size of the message sent back and forth over the network. A gigabit network can support a maximum number of bytes per second is ((1024&lt;sup&gt;3&lt;/sup&gt;)/8)*60% leaving 40% for other system monitoring overhead = 80,530,636 bytes. Any distributed No-SQL solution will have to deal with its own overhead if i assume we get 40% writes and 60% reads on a specific machine that means 40% of the requests have to have a hop to another machine to resolve conflict that leaves us with just 60% of the network of 80,530,636 = 48,318,381 bytes.&lt;/p&gt;
+
+&lt;p&gt;If we use 700 bytes for communication for each read/write we end up with 69,026 requests per second. I would say if the system keeps its data communication in this mark it should be ok in meeting the 50,000 to 70,000 requests per second per machine. If we assume that traces are run on the system we will be loosing a lot of bandwidth for that. It is safe to assume that by implementing using sockets and having very low overhead for point to point communication this system can support minimum 50,000 requests per second per node on a healthy state.&lt;/p&gt;
+
+&lt;p&gt;Picture below shows what the client server code does.
+&lt;img src=&quot;/img/posts/clientserver.png&quot; alt=&quot;Client server architecture for banyan&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;The code used to verify performance with client API calls.&lt;/p&gt;
+
+&lt;script src=&quot;https://gist.github.com/vallur/da13b54d6bd9b73567a2.js&quot;&gt;&lt;/script&gt;
+
+
+&lt;p&gt;Test results : -
+&lt;code&gt;
+total time taken for completion of 2000000 calls - 8 mins 37 secs 780 ms 122 Us
+&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;Test results from JVM metrics :-&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/img/posts/SocketClient.png&quot; alt=&quot;SocketClient metrics&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Server side code for the socket&lt;/p&gt;
+
+&lt;script src=&quot;https://gist.github.com/vallur/fd298d23db3730036b8c.js&quot;&gt;&lt;/script&gt;
+
+
+&lt;p&gt;The class responsible for servicing simple requests&lt;/p&gt;
+
+&lt;script src=&quot;https://gist.github.com/vallur/133259b47e46a7240085.js&quot;&gt;&lt;/script&gt;
+
+
+&lt;p&gt;Test metrics from server side :-&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/img/posts/socketServer.png&quot; alt=&quot;SocketClient metrics&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;From this, More than 50,000 requests per second is defenitely acheivable on the right hardware.&lt;/p&gt;
+
+&lt;p&gt;Advantages:-&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Behave very simmillar to ReST and can also listen to port 80.&lt;/li&gt;
+&lt;li&gt;very light weight&lt;/li&gt;
+&lt;li&gt;Extreme performance on speed which allows to meet extreme amount of client requests per second.&lt;/li&gt;
+&lt;/ul&gt;
+
+
+&lt;p&gt;Disadvantages:-&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;will have to implement everything from scratch.&lt;/li&gt;
+&lt;li&gt;Security will have to be implemented.&lt;/li&gt;
+&lt;li&gt;Request and response is not human readable. Not exactly a disadvantage as Rest post requests are base 64 encoded which is not human readable either.&lt;/li&gt;
+&lt;/ul&gt;
+
+
+&lt;p&gt;The hardware used for the performance tests are below:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Server - 2GHz Intel Core i7 16 GB 1600 DDR3 RAM - OSX 10.9.4&lt;/li&gt;
+&lt;li&gt;Client - 2.7 GHz Intel(R) Core i5 8 GB RAM - Windows 8.1&lt;/li&gt;
+&lt;li&gt;Java version - 1.8.0_05&lt;/li&gt;
+&lt;li&gt;Network Switch/Link speed - 100 Mbps. -- This is the major culprit for the slow speed.&lt;/li&gt;
+&lt;/ul&gt;
+
+
+&lt;p&gt;The total round trip time depends on the network and i have seen average network lag of 300 Us to 9 ms per request for a communication bytesize of less than 1k for any of the above technologies we choose. This network lag begs for the need for compression, when the message size increases which i shall discuss in my next blog.&lt;/p&gt;
+
+&lt;p&gt;The above tests are not a apple to apple comparison as the tests on websockets and Rest API i used hello world example and in the socket case I used actual data gets from Banyan with byte size varying from 500 bytes to 1200 bytes of actual data including serialization and deserialization.&lt;/p&gt;
+
+&lt;p&gt;For the reason of security and availability of admin operations it would not be a bad idea to implement a tomcat application on top of this framework. Just a thought for the future.&lt;/p&gt;
+
+&lt;div class=&quot;row&quot;&gt;   
+    &lt;div class=&quot;span9 column&quot;&gt;
+            &lt;p class=&quot;pull-right&quot;&gt; &lt;a href=&quot;/blog/Serialization-continues&quot; title=&quot;Previous Post: Serialization - Continues....&quot;&gt;&lt;i class=&quot;icon-chevron-left&quot;&gt;&lt;/i&gt;&lt;/a&gt;           &lt;a href=&quot;/blog/CompressionMetrics&quot; title=&quot;Next Post: Compression - what is the right API to use?&quot;&gt;&lt;i class=&quot;icon-chevron-right&quot;&gt;&lt;/i&gt;&lt;/a&gt;     &lt;/p&gt;  
+    &lt;/div&gt;
+&lt;/div&gt;
+
+
+
+
+&lt;p&gt;&lt;div class=&quot;row&quot;&gt; &lt;br/&gt;
+    &lt;div class=&quot;span9 columns&quot;&gt;  &lt;br/&gt;
+        &lt;h2&gt;Comments Section&lt;/h2&gt;
+        &lt;p&gt;Feel free to comment on the post but keep it clean and on topic.&lt;/p&gt;
+        &lt;div id=&quot;fb-root&quot;&gt;&lt;/div&gt;
+&lt;script&gt;(function(d, s, id) {
+  var js, fjs = d.getElementsByTagName(s)[0];
+  if (d.getElementById(id)) return;
+  js = d.createElement(s); js.id = id;
+  js.src = &quot;//connect.facebook.net/en_US/sdk.js#xfbml=1&amp;amp;version=v2.0&quot;;
+  fjs.parentNode.insertBefore(js, fjs);
+}(document, &#39;script&#39;, &#39;facebook-jssdk&#39;));&lt;/script&gt;
+&lt;div class=&quot;fb-comments&quot; data-href=&quot;http://vallur.github.io/blog/RightAPIToChooseForCall&quot; data-numposts=&quot;5&quot; data-width=&quot;700&quot; data-colorscheme=&quot;light&quot;&gt;&lt;/div&gt;
+&lt;/div&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;!-- Twitter --&gt;
+&lt;script&gt;!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=&quot;//platform.twitter.com/widgets.js&quot;;fjs.parentNode.insertBefore(js,fjs);}}(document,&quot;script&quot;,&quot;twitter-wjs&quot;);&lt;/script&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;!-- Google + --&gt;
+&lt;script type=&quot;text/javascript&quot;&gt;
+  (function() {
+    var po = document.createElement(&#39;script&#39;); po.type = &#39;text/javascript&#39;; po.async = true;
+    po.src = &#39;https://apis.google.com/js/plusone.js&#39;;
+    var s = document.getElementsByTagName(&#39;script&#39;)[0]; s.parentNode.insertBefore(po, s);
+  })();
+&lt;/script&gt;&lt;/p&gt;
+</content>
+ </entry>
+ 
+ <entry>
+   <title>Serialization - Continues....</title>
+   <link href="http://vallur.github.com/blog/Serialization-continues"/>
+   <updated>2014-08-13T00:00:00-07:00</updated>
+   <id>http://vallur.github.com/blog/Serialization-continues</id>
+   <content type="html">&lt;p&gt;As a continuation of the previous serialization blogs I am planning to bore further on this topic. I like protobuf a lot and also I like FST serialization on the aspects that it can compact the serialized bytes in o(1). Due to the compaction of size between protobuf and FST I would say FST would win if we look at the end to end pipe line.&lt;/p&gt;
+
+&lt;p&gt;After learning the best from both these ideas i planned to write my own API and see if i can do better. What is that i have to offer that is not already in one of these. I am planning to add the below features on top of FST framework.&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;&lt;p&gt;The use of ByteBuffer for allocating memory for the objects to be serialized.
+ This is particularly important as this widens the range for serialization to use&lt;/p&gt;
+
+&lt;p&gt; DirectByteBuffer - though slow right now might become super fast sooner as OS handles the memory allocation for later. Today it is slow as the JVM controls the availability of the buffer memory for security and exclusive access.&lt;/p&gt;
+
+&lt;p&gt; Array backed byte buffer - This is the normal bytebuffer. This is the fastest byte buffer implementation to use.&lt;/p&gt;
+
+&lt;p&gt; Memory mapped byte buffer - This is the coolest feature for writing the serialized data asynchronously to disk.&lt;/p&gt;&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;Pre-calculating the size of a object, so we donot incur the cost of array resizing on the fly. We would incur the array resizing cost and GC cost if we use FST or ByteArrayOutputStream. It is possible to use same bytebuffer to serialize multiple objects that are part of the same connection as long as the size matches.&lt;/p&gt;&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;Introduction of LazyString. This is a boxed type of string to store the bytes of string and do the conversion of string to bytes and vice versa only when it is necessary.&lt;/p&gt;&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;Only works with known types primitive types and their respective boxed objects, List, Map and some more objects specific to banyan. This looks custom built for banyan but is very easy to develop.&lt;/p&gt;&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;Automatically provides compression and the compression acheived is better than LZ4 compression on top of java serialized bytes.&lt;/p&gt;&lt;/li&gt;
+&lt;/ol&gt;
+
+
+&lt;div style=&quot;height:330px;overflow-y:scroll&quot;&gt;
+&lt;script src=&quot;https://gist.github.com/vallur/ba2856722600cc7a6653.js&quot;&gt;&lt;/script&gt;
+&lt;/div&gt;
+
+
+&lt;p&gt;After explaining the benefits of the new API. It is time to show the code that does the actual serialization and deserialization for Banyan and check out their performance.&lt;/p&gt;
+
+&lt;p&gt;There are two use cases of objects i tend to use in Banyan commonly they are ArrayList for storing single items attribute or leaf values or a Map to store the values that can live in a branch which can protentially be deep.&lt;/p&gt;
+
+&lt;p&gt;In this blog i shall work with only ArrayList and my own RandomItem. Its schema looks like below with getter and setters.&lt;/p&gt;
+
+&lt;div style=&quot;height:330px;overflow-y:scroll&quot;&gt;
+&lt;script src=&quot;https://gist.github.com/vallur/d1e33458708115d817c8.js&quot;&gt;&lt;/script&gt;
+&lt;/div&gt;
+
+
+&lt;p&gt;Now for the code fragment used for the perf test of the new BinaryObjectSerializer&lt;/p&gt;
+
+&lt;div style=&quot;height:330px;overflow-y:scroll&quot;&gt;
+&lt;script src=&quot;https://gist.github.com/vallur/ffc0a293afb670973e9a.js&quot;&gt;&lt;/script&gt;
+&lt;/div&gt;
+
+
+&lt;p&gt;Now for the actual results and data size after serialization for a total call count of 10,000,000.&lt;/p&gt;
+
+&lt;p&gt;The list size of 1000 count the metrics are below&lt;/p&gt;
+
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;API    &lt;/th&gt;
+&lt;th&gt;  Byte Size  &lt;/th&gt;
+&lt;th&gt;  Performance AVG &lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;Banyan &lt;/td&gt;
+&lt;td&gt; 111,965 &lt;/td&gt;
+&lt;td&gt; 4 ms &lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;a href=&quot;https://code.google.com/p/protobuf/&quot;&gt;Protobuf&lt;/a&gt; &lt;/td&gt;
+&lt;td&gt; 247,981 &lt;/td&gt;
+&lt;td&gt; 4 ms &lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;a href=&quot;http://ruedigermoeller.github.io/fast-serialization/&quot;&gt;Fast&lt;/a&gt; &lt;/td&gt;
+&lt;td&gt; 120,490 &lt;/td&gt;
+&lt;td&gt; 7 ms &lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Java &lt;/td&gt;
+&lt;td&gt; 204,135 &lt;/td&gt;
+&lt;td&gt; 45 ms &lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+
+
+&lt;p&gt;For a list size of 750 count the metrics are below&lt;/p&gt;
+
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;API    &lt;/th&gt;
+&lt;th&gt;  Byte Size  &lt;/th&gt;
+&lt;th&gt;  Performance AVG &lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;Banyan &lt;/td&gt;
+&lt;td&gt; 78,333 &lt;/td&gt;
+&lt;td&gt; 4 ms &lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;a href=&quot;https://code.google.com/p/protobuf/&quot;&gt;Protobuf&lt;/a&gt; &lt;/td&gt;
+&lt;td&gt; 184,404 &lt;/td&gt;
+&lt;td&gt; 3 ms &lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;a href=&quot;http://ruedigermoeller.github.io/fast-serialization/&quot;&gt;Fast&lt;/a&gt; &lt;/td&gt;
+&lt;td&gt; 84,467 &lt;/td&gt;
+&lt;td&gt; 5 ms &lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+
+
+&lt;p&gt; For a list size of 500 count the metrics are below&lt;/p&gt;
+
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;API    &lt;/th&gt;
+&lt;th&gt;  Byte Size  &lt;/th&gt;
+&lt;th&gt;  Performance AVG &lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;Banyan &lt;/td&gt;
+&lt;td&gt; 52,401 &lt;/td&gt;
+&lt;td&gt; 2 ms &lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;a href=&quot;https://code.google.com/p/protobuf/&quot;&gt;Protobuf&lt;/a&gt; &lt;/td&gt;
+&lt;td&gt; 123,468 &lt;/td&gt;
+&lt;td&gt; 2 ms &lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;a href=&quot;http://ruedigermoeller.github.io/fast-serialization/&quot;&gt;Fast&lt;/a&gt; &lt;/td&gt;
+&lt;td&gt; 56,537 &lt;/td&gt;
+&lt;td&gt; 2 ms &lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+
+
+&lt;p&gt;  For a list size of 250 count the metrics are below&lt;/p&gt;
+
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;API    &lt;/th&gt;
+&lt;th&gt;  Byte Size  &lt;/th&gt;
+&lt;th&gt;  Performance AVG &lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;Banyan &lt;/td&gt;
+&lt;td&gt; 26,288 &lt;/td&gt;
+&lt;td&gt; 1 ms &lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;a href=&quot;https://code.google.com/p/protobuf/&quot;&gt;Protobuf&lt;/a&gt; &lt;/td&gt;
+&lt;td&gt; 61,471 &lt;/td&gt;
+&lt;td&gt; 1 ms &lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;a href=&quot;http://ruedigermoeller.github.io/fast-serialization/&quot;&gt;Fast&lt;/a&gt; &lt;/td&gt;
+&lt;td&gt; 28,211 &lt;/td&gt;
+&lt;td&gt; 1 ms &lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+
+
+&lt;p&gt; Now going and looking at the more realistic use cases&lt;/p&gt;
+
+&lt;p&gt;   For a list size of 100 count the metrics are below&lt;/p&gt;
+
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;API    &lt;/th&gt;
+&lt;th&gt;  Byte Size  &lt;/th&gt;
+&lt;th&gt;  Performance AVG &lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;Banyan &lt;/td&gt;
+&lt;td&gt; 104,40 &lt;/td&gt;
+&lt;td&gt; 550 µs &lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;a href=&quot;https://code.google.com/p/protobuf/&quot;&gt;Protobuf&lt;/a&gt; &lt;/td&gt;
+&lt;td&gt; 248,84 &lt;/td&gt;
+&lt;td&gt; 450 µs &lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;a href=&quot;http://ruedigermoeller.github.io/fast-serialization/&quot;&gt;Fast&lt;/a&gt; &lt;/td&gt;
+&lt;td&gt; 112,44 &lt;/td&gt;
+&lt;td&gt; 1 ms &lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+
+
+&lt;pre&gt;&lt;code&gt;For a list size of 25 count the metrics are below 
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;API    &lt;/th&gt;
+&lt;th&gt;  Byte Size  &lt;/th&gt;
+&lt;th&gt;  Performance AVG &lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;Banyan &lt;/td&gt;
+&lt;td&gt; 25,67 &lt;/td&gt;
+&lt;td&gt; 120 µs &lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;a href=&quot;https://code.google.com/p/protobuf/&quot;&gt;Protobuf&lt;/a&gt; &lt;/td&gt;
+&lt;td&gt; 62,03 &lt;/td&gt;
+&lt;td&gt; 100 µs &lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;a href=&quot;http://ruedigermoeller.github.io/fast-serialization/&quot;&gt;Fast&lt;/a&gt; &lt;/td&gt;
+&lt;td&gt; 27,98 &lt;/td&gt;
+&lt;td&gt; 154 µs &lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+
+
+&lt;pre&gt;&lt;code&gt; For a list size of 1 count the metrics are below 
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;API    &lt;/th&gt;
+&lt;th&gt;  Byte Size  &lt;/th&gt;
+&lt;th&gt;  Performance AVG &lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;Banyan &lt;/td&gt;
+&lt;td&gt; 103 &lt;/td&gt;
+&lt;td&gt; 7 µs &lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;a href=&quot;https://code.google.com/p/protobuf/&quot;&gt;Protobuf&lt;/a&gt; &lt;/td&gt;
+&lt;td&gt; 238 &lt;/td&gt;
+&lt;td&gt; 7 µs &lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;a href=&quot;http://ruedigermoeller.github.io/fast-serialization/&quot;&gt;Fast&lt;/a&gt; &lt;/td&gt;
+&lt;td&gt; 140 &lt;/td&gt;
+&lt;td&gt; 10 µs &lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+
+
+&lt;p&gt;As you can see from the metrics above all three are comparable on performance. Protobuf is a little faster as it is more declarative. I shall update the post with more fine tuning to acheive better performance.&lt;/p&gt;
+
+&lt;p&gt; Now i just need to have support for serializing map types with these super great performance numbers - i get to jump to my next great solution. I am super excited on seeing these metrics. I would be willing to make this genenral purpose if anyone is interested in getting more about this. Based on these metrics I decided to write my own Serialization API&#39;s as listed above and they will be avialbale in the banyan repository soon.&lt;/p&gt;
+
+&lt;div class=&quot;row&quot;&gt;   
+    &lt;div class=&quot;span9 column&quot;&gt;
+            &lt;p class=&quot;pull-right&quot;&gt; &lt;a href=&quot;/blog/Serialization&quot; title=&quot;Previous Post: Serialization - What to choose?.&quot;&gt;&lt;i class=&quot;icon-chevron-left&quot;&gt;&lt;/i&gt;&lt;/a&gt;          &lt;a href=&quot;/blog/RightAPIToChooseForCall&quot; title=&quot;Next Post: Rest Over JSON or plain old sockets for communication&quot;&gt;&lt;i class=&quot;icon-chevron-right&quot;&gt;&lt;/i&gt;&lt;/a&gt;      &lt;/p&gt;  
+    &lt;/div&gt;
+&lt;/div&gt;
+
+
+
+
+&lt;p&gt;&lt;div class=&quot;row&quot;&gt; &lt;br/&gt;
+    &lt;div class=&quot;span9 columns&quot;&gt;  &lt;br/&gt;
+        &lt;h2&gt;Comments Section&lt;/h2&gt;
+        &lt;p&gt;Feel free to comment on the post but keep it clean and on topic.&lt;/p&gt;
+        &lt;div id=&quot;fb-root&quot;&gt;&lt;/div&gt;
+&lt;script&gt;(function(d, s, id) {
+  var js, fjs = d.getElementsByTagName(s)[0];
+  if (d.getElementById(id)) return;
+  js = d.createElement(s); js.id = id;
+  js.src = &quot;//connect.facebook.net/en_US/sdk.js#xfbml=1&amp;amp;version=v2.0&quot;;
+  fjs.parentNode.insertBefore(js, fjs);
+}(document, &#39;script&#39;, &#39;facebook-jssdk&#39;));&lt;/script&gt;
+&lt;div class=&quot;fb-comments&quot; data-href=&quot;http://vallur.github.io/blog/Serialization-continues&quot; data-numposts=&quot;5&quot; data-width=&quot;700&quot; data-colorscheme=&quot;light&quot;&gt;&lt;/div&gt;
+&lt;/div&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;!-- Twitter --&gt;
+&lt;script&gt;!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=&quot;//platform.twitter.com/widgets.js&quot;;fjs.parentNode.insertBefore(js,fjs);}}(document,&quot;script&quot;,&quot;twitter-wjs&quot;);&lt;/script&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;!-- Google + --&gt;
+&lt;script type=&quot;text/javascript&quot;&gt;
+  (function() {
+    var po = document.createElement(&#39;script&#39;); po.type = &#39;text/javascript&#39;; po.async = true;
+    po.src = &#39;https://apis.google.com/js/plusone.js&#39;;
+    var s = document.getElementsByTagName(&#39;script&#39;)[0]; s.parentNode.insertBefore(po, s);
+  })();
+&lt;/script&gt;&lt;/p&gt;
+</content>
+ </entry>
+ 
+ <entry>
+   <title>Serialization - What to choose?.</title>
+   <link href="http://vallur.github.com/blog/Serialization"/>
+   <updated>2014-08-09T00:00:00-07:00</updated>
+   <id>http://vallur.github.com/blog/Serialization</id>
+   <content type="html">&lt;p&gt;Serialization of objects impacts the performance of a service considerably. The response time for receiving/sending objects is directly linked to the time taken for serialization and deserialization. If the serialized bytes are more that impacts the time spent on the wire. The key to choose the right technology should be based on 3 factors no loss of data, serialization byte size and time taken for serialization and deserialization.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/img/posts/Serialization.png&quot; alt=&quot;Java Serialization&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Serialization is the process of converting the object in memory into a byte or char stream so that it can be saved to disk or sent over the wire.&lt;/p&gt;
+
+&lt;p&gt;Deserialization is the process of converting a byte stream or char stream into objects.&lt;/p&gt;
+
+&lt;p&gt;There are two design decision we need to take while choosing the right format.&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Byte Stream&lt;/li&gt;
+&lt;/ul&gt;
+
+
+&lt;p&gt;We choose byte stream to reduce the size of the object or because that is the default supported by the programming language out of the box. When we want to consider performance byte stream would be the first choice. Java Serialization will defenitely not be the right serialization platform to use as it is very slow and very descriptive.&lt;/p&gt;
+
+&lt;p&gt;There are many choices to make in order to pick the right serialization API
+other than java serialization.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Google Protobuf&lt;/strong&gt;&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;Google&#39;s protobuf is extremely fast.
+
+The way it works is by generating a custom serialization class for the object. It writes a number for each type that is serialized and the value. Hence considerbly reducing the type information that is written. The binary stream written by protobuf is propereitary you will have to use the same objects builder to de-serialize the object back. Protobuf is very ideal as it supports for C++, java and other languages as you can use the same protoc compiler to generate the language specific code to serialize/deserialize the objects. 
+Major disadvantage is, it cannot support Generic object types or deep objects like Map in a class. This makes it not suitable or would put more work on the client and server API to convert the generic objects into strong typed objects for protobuf serialization. 
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;&lt;strong&gt;GSON and others&lt;/strong&gt;&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;There are other fast binary serializtion API&#39;s like GSON in the market. These seem to mitigate the problem Protobuf has by allowing the developer to register the class before serializing it. Still we will have to write a general object serializer for the class of type Map. This makes it difficult for serializing deep objects. Our externalization code becomes very difficult. It would be better to write my own instead of using a generic serializer specific for a framework like GSON or simple jackson. Provided i can meet the performance of either of them.
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;&lt;strong&gt;Fast Serialization&lt;/strong&gt;&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;The idea behind fast serialization is impressive. Some of the impressive features of fast serialization are
+- It is a drop in replacement for java serialization and is only slightly slower than protobuf (meassured in terms of under seconds ). 
+- It has class preregistered for all basic objects, types and array combination. 
+- Does convert boxed objects like Long into primitive type of long while serializing. 
+- Only stores the actual allocated size for a primitive type. For ex:- if you define a type as long and its actual value is 123 it only uses 2 bytes allocation to serialize it , 1 byte for storing the type and 1 for the actual value of 123.
+- Repetitive strings in object are serialized and written once naturally allowing for compression.
+- Most strings in the north american or the europian subcontinent fall within the 254 charectar mark. But we use UTF-8 as the charecter set to store them - which makes it as using 2 bytes for every char. FST uses 1 byte to store all char types and uses 3 bytes for any occassional double byte char.
+
+It almost felt like some one read my mind today and went back in time to write it ;). The data being compressed using this is smaller in size than protobuf and almost the same size or even better than lz4 compression with more speed.
+
+It is not fair if i don&#39;t mention the disadvantages even though i like it a lot. The developer uses UnSafe methods to acheive the speed of serialization. I am trying to push its limits. It is working in a fantastic way when trying to serialize and de-serialize objects of size less than 2 MB which is 10 times bigger in size when using java serialization. Performance degradation is seen when the object size goes higher, it is still able to serialize and deserialize within times lesser than java serialization.
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Let us look at some code to see how easy it is to use FSTSerialization&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;&lt;em&gt;Serialization Code&lt;/em&gt;&lt;/strong&gt;&lt;/p&gt;
+
+&lt;script src=&quot;https://gist.github.com/vallur/f0f67b213f9a56a715a3.js&quot;&gt;&lt;/script&gt;
+
+
+&lt;p&gt;&lt;strong&gt;&lt;em&gt;De-Serialization Code&lt;/em&gt;&lt;/strong&gt;&lt;/p&gt;
+
+&lt;script src=&quot;https://gist.github.com/vallur/0a2f938593bf5fa56812.js&quot;&gt;&lt;/script&gt;
+
+
+&lt;p&gt;In the above example the same set of bytes are used for serialization as well as de-serialization so constant known stress for GC.&lt;/p&gt;
+
+&lt;p&gt;Some metrics while doing serialization and deserialization between client and server on the same machine using FST and Banyan random rows fetch. The data size is in the low 1k range and doesnot include network traffic time. This should give you an idea about the speed of doing search operations in Banyan.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/img/posts/JMXSerialize.png&quot; alt=&quot;FSTSerialize&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;The max processing time is because of my MAC crying and saying not enough memory.&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Char stream&lt;/li&gt;
+&lt;/ul&gt;
+
+
+&lt;p&gt;The char stream way of serialization is slow as they are either verbose or evrything is converted into double byte strings. Any soultion using char stream opposed to byte stream will be atleast two time slower for simple array copy and network buffer transfer as char in java uses double byte by default.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;XML&lt;/strong&gt;
+XML is usually too verbose as it has to have start and end tags along with the name and value attributes to make it readable. Also to store in xml we will have to escape the escase chars makes the string manipulation on large blobs very slow, considering that strings are immutable in java. It is simple to read follows a strong schema and it also incurs the cost of validation of input as the different types could have garbage values and type mismaches. Easy for other languages to support.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;JSON&lt;/strong&gt;
+Much simpler than XML and very easy to read. Too less of a charectars to escape. Easy for other languages to support. Can be represented in a huge hashmap lke object type as it needs the Key and value pair combination to mostly make it readable. This also is verbose but less than XML. Time taken for serialization and deserialization is less but considerable higher than binary format. Easy for other languages to support.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Table&lt;/strong&gt;
+When trying to read or write tabular data it is a fair choice to choose this format, where the first row is the columns and consecutive rows are values. It is way simpler than the above two to interpret. The disadvantage is not all the data we read and write is tabular in format. If choosing CSV or tab it is easier for other languages to support.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;&lt;em&gt;Conclusion&lt;/em&gt;&lt;/strong&gt;
+I am thinking of using a combination of the three to support a wide range of audience. To start with to give a rock solid product, I can use Fast Serialization with binary stream and later while developing admin tools can have support for tabular for single row and multi row select from singe table and JSON while trying to select graph data. This would make php and javascript client&#39;s happy.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;&lt;em&gt;Disclaimer&lt;/em&gt;&lt;/strong&gt;
+The suggestions provided are suitable for Banyan and should not be considered as a defacto for all applications.&lt;/p&gt;
+
+&lt;div class=&quot;row&quot;&gt;   
+    &lt;div class=&quot;span9 column&quot;&gt;
+            &lt;p class=&quot;pull-right&quot;&gt; &lt;a href=&quot;/blog/Protobuf&quot; title=&quot;Previous Post: Java Object Binary Serialization Metrics using ProtoBuf&quot;&gt;&lt;i class=&quot;icon-chevron-left&quot;&gt;&lt;/i&gt;&lt;/a&gt;            &lt;a href=&quot;/blog/Serialization-continues&quot; title=&quot;Next Post: Serialization - Continues....&quot;&gt;&lt;i class=&quot;icon-chevron-right&quot;&gt;&lt;/i&gt;&lt;/a&gt;      &lt;/p&gt;  
+    &lt;/div&gt;
+&lt;/div&gt;
+
+
+
+
+&lt;p&gt;&lt;div class=&quot;row&quot;&gt; &lt;br/&gt;
+    &lt;div class=&quot;span9 columns&quot;&gt;  &lt;br/&gt;
+        &lt;h2&gt;Comments Section&lt;/h2&gt;
+        &lt;p&gt;Feel free to comment on the post but keep it clean and on topic.&lt;/p&gt;
+        &lt;div id=&quot;fb-root&quot;&gt;&lt;/div&gt;
+&lt;script&gt;(function(d, s, id) {
+  var js, fjs = d.getElementsByTagName(s)[0];
+  if (d.getElementById(id)) return;
+  js = d.createElement(s); js.id = id;
+  js.src = &quot;//connect.facebook.net/en_US/sdk.js#xfbml=1&amp;amp;version=v2.0&quot;;
+  fjs.parentNode.insertBefore(js, fjs);
+}(document, &#39;script&#39;, &#39;facebook-jssdk&#39;));&lt;/script&gt;
+&lt;div class=&quot;fb-comments&quot; data-href=&quot;http://vallur.github.io/blog/Serialization&quot; data-numposts=&quot;5&quot; data-width=&quot;700&quot; data-colorscheme=&quot;light&quot;&gt;&lt;/div&gt;
+&lt;/div&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;!-- Twitter --&gt;
+&lt;script&gt;!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=&quot;//platform.twitter.com/widgets.js&quot;;fjs.parentNode.insertBefore(js,fjs);}}(document,&quot;script&quot;,&quot;twitter-wjs&quot;);&lt;/script&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;!-- Google + --&gt;
+&lt;script type=&quot;text/javascript&quot;&gt;
+  (function() {
+    var po = document.createElement(&#39;script&#39;); po.type = &#39;text/javascript&#39;; po.async = true;
+    po.src = &#39;https://apis.google.com/js/plusone.js&#39;;
+    var s = document.getElementsByTagName(&#39;script&#39;)[0]; s.parentNode.insertBefore(po, s);
+  })();
+&lt;/script&gt;&lt;/p&gt;
+</content>
+ </entry>
+ 
+ <entry>
+   <title>Java Object Binary Serialization Metrics using ProtoBuf</title>
+   <link href="http://vallur.github.com/blog/Protobuf"/>
+   <updated>2014-08-09T00:00:00-07:00</updated>
+   <id>http://vallur.github.com/blog/Protobuf</id>
+   <content type="html">&lt;p&gt;Serialization is a very big part of modern java applications. Mostly simplicity and readability scores  over performance. If we have a standard format that is small enough and understandable by everyone we would hop on to pick up the winner.&lt;/p&gt;
+
+&lt;p&gt;In this blog i shall look at implementing classes from the serialization point of view and try to serialize and deserialize it and try to find the performance of the same using our friendly TimeLapseCounter. I will be using this serialization for the sake of replication, transaction logging and disk storage.&lt;/p&gt;
+
+&lt;p&gt;Serializing and DeSerializing java objects using Protobuf. Protobuf actually kicks java serialization&#39;s back when it comes to performance. I would like to decide that this would be my choice for my application. But it has its own limitations as protobuf does not have proper support for Maps and classes with templates or generics.&lt;/p&gt;
+
+&lt;p&gt;Some of the reasons why protobuf is extremely fast is listed below&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;p&gt;The byte array size needed to serialize an object is calulated and allocated first rather than on the fly. The way array resizing is done it is faily expensive operation. This is one of the places where protobuf stands way ahead of the curve.&lt;/p&gt;&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;All fields are marked with a number and set as required or optional to make the expectations on field location in a stream well known. By doing that they make their code generation as simple as&lt;/p&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+
+&lt;script src=&quot;https://gist.github.com/vallur/828186685d776abbad7e.js&quot;&gt;&lt;/script&gt;
+
+
+&lt;ul&gt;
+&lt;li&gt;When dealing with Strings they use the concept of lazy string. While deserializing string values they are deserialized and stored as bytes and actually deserialized to String only when they are accessed via their getter method. This i think is clever as the actual time taken is moved to else where. Also there is slight swich of objects used in string when they serialize a string it is converted into object and vice versa by replacing an ref object class. Which makes me think that their assumption is these protobuf objects do not live in memory for long which is true in most cases.&lt;/li&gt;
+&lt;/ul&gt;
+
+
+&lt;script src=&quot;https://gist.github.com/vallur/4897c3a1139189a21587.js&quot;&gt;&lt;/script&gt;
+
+
+&lt;p&gt;I would say google has successfully written a code generator that works exactly like how we would write a externalize function to serialize and deserialize our objects.&lt;/p&gt;
+
+&lt;p&gt;I created a not so complex ComplexItemContainer schema in protobuf&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;package com.banyan.protobuf;
+
+option java_package = &quot;com.banyan.protobuf&quot;;
+option java_outer_classname = &quot;ComplexItemContainer&quot;;
+
+message ComplexItemList
+{
+ repeated ComplexItem item = 1;
+}
+
+message ComplexItem
+{
+ required string name = 100;
+ repeated string value = 101;
+ optional int32 intvalue = 102;
+ optional int64 longValue = 103;
+ optional int64 doubleValue = 104;
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;The way protobuf implements the serialization is by maintaining a map of all the known types listed above for a class and serializing/deserializing the class based on the Map. Run the protoc command with the .proto file to generate the class file. You can download the protoc.exe file from here. In mac you will have to download the protobuf compile code run&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;./configure
+./make
+./make install
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;to install probuf compiler. This is the command i used to generate java source from protoc compiler&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;protoc -I=d:\school\JMXCounters --java_out=d:\school\JMXCounters\src D:\school\JMXCounters\ComplexItemContainer.proto 
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Below is the code i used for performing metrics calculation.&lt;/p&gt;
+
+&lt;script src=&quot;https://gist.github.com/vallur/acd4469c10d92a86f43b.js&quot;&gt;&lt;/script&gt;
+
+
+&lt;p&gt;The actual byte size used for serialization in first pass is 120k. The algorithm i used above is very generic and has least amount of repetition of string or int values possible. My idea is to get the worst case performance for a object like this. My performance counters helped in getting the metrics below.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/img/posts/protobuf1.png&quot; alt=&quot;Protobuf Serialize&quot; /&gt;
+&lt;img src=&quot;/img/posts/protobuf2.png&quot; alt=&quot;Protobuf deSerialize&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;When I reduce the LOOPCOUNT to 1 and keep the data size to 100 bytes the time taken in serialization is less than 10 Us cannot get any better.&lt;/p&gt;
+
+&lt;p&gt;Ironically serialization is faster than deserialization. But i don&#39;t care about that as long as we are still in the low Us ranges as i am not using a powerful machine and we will have enough buffer for network unknowns. Java native serialization is 10x worse than protobuf so i will not show that and you can do your own metrics calculations.&lt;/p&gt;
+
+&lt;p&gt;To summarize only drawback is not having the support for Map and classes with generics support. if you know the datatype and class structure protobuf is the one for you. Due to this limitation i will have to look further for other serialization frameworks or implement my own the search continues.....&lt;/p&gt;
+
+&lt;div class=&quot;row&quot;&gt;   
+    &lt;div class=&quot;span9 column&quot;&gt;
+            &lt;p class=&quot;pull-right&quot;&gt; &lt;a href=&quot;/blog/Notification-listener&quot; title=&quot;Previous Post: JMX Notification Listener&quot;&gt;&lt;i class=&quot;icon-chevron-left&quot;&gt;&lt;/i&gt;&lt;/a&gt;             &lt;a href=&quot;/blog/Serialization&quot; title=&quot;Next Post: Serialization - What to choose?.&quot;&gt;&lt;i class=&quot;icon-chevron-right&quot;&gt;&lt;/i&gt;&lt;/a&gt;     &lt;/p&gt;  
+    &lt;/div&gt;
+&lt;/div&gt;
+
+
+
+
+&lt;p&gt;&lt;div class=&quot;row&quot;&gt; &lt;br/&gt;
+    &lt;div class=&quot;span9 columns&quot;&gt;  &lt;br/&gt;
+        &lt;h2&gt;Comments Section&lt;/h2&gt;
+        &lt;p&gt;Feel free to comment on the post but keep it clean and on topic.&lt;/p&gt;
+        &lt;div id=&quot;fb-root&quot;&gt;&lt;/div&gt;
+&lt;script&gt;(function(d, s, id) {
+  var js, fjs = d.getElementsByTagName(s)[0];
+  if (d.getElementById(id)) return;
+  js = d.createElement(s); js.id = id;
+  js.src = &quot;//connect.facebook.net/en_US/sdk.js#xfbml=1&amp;amp;version=v2.0&quot;;
+  fjs.parentNode.insertBefore(js, fjs);
+}(document, &#39;script&#39;, &#39;facebook-jssdk&#39;));&lt;/script&gt;
+&lt;div class=&quot;fb-comments&quot; data-href=&quot;http://vallur.github.io/blog/Protobuf&quot; data-numposts=&quot;5&quot; data-width=&quot;700&quot; data-colorscheme=&quot;light&quot;&gt;&lt;/div&gt;
+&lt;/div&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;!-- Twitter --&gt;
+&lt;script&gt;!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=&quot;//platform.twitter.com/widgets.js&quot;;fjs.parentNode.insertBefore(js,fjs);}}(document,&quot;script&quot;,&quot;twitter-wjs&quot;);&lt;/script&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;!-- Google + --&gt;
+&lt;script type=&quot;text/javascript&quot;&gt;
+  (function() {
+    var po = document.createElement(&#39;script&#39;); po.type = &#39;text/javascript&#39;; po.async = true;
+    po.src = &#39;https://apis.google.com/js/plusone.js&#39;;
+    var s = document.getElementsByTagName(&#39;script&#39;)[0]; s.parentNode.insertBefore(po, s);
+  })();
+&lt;/script&gt;&lt;/p&gt;
+</content>
+ </entry>
+ 
+ <entry>
+   <title>JMX Notification Listener</title>
+   <link href="http://vallur.github.com/blog/Notification-listener"/>
+   <updated>2014-08-09T00:00:00-07:00</updated>
+   <id>http://vallur.github.com/blog/Notification-listener</id>
+   <content type="html">&lt;p&gt;The Java notification framework is mainly used in the cache eviction space. It is a reliable way to determine wether a particular server is active and healthy as it would be constantly sending notifications and performance metrics using the JMX API.&lt;/p&gt;
+
+&lt;p&gt;The notification framework works in the publisher subscriber model. In this example we can see how the NotificationListener can be used to subscribe to messages from a JMX client.&lt;/p&gt;
+
+&lt;p&gt;The below code&lt;/p&gt;
+
+&lt;script src=&quot;https://gist.github.com/vallur/764ae024e101d7cc5bfe.js&quot;&gt;&lt;/script&gt;
+
+
+&lt;p&gt;The above is a simple example to print all the object names that are available in the application that runs and sends its JMX notifications on port 9999.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;Create an RMI connector client and connect it to the RMI connector server
+
+MBeanServer default domain = DefaultDomain
+
+MBean count = 27
+
+Query MBeanServer MBeans:
+ ObjectName = JMImplementation:type=MBeanServerDelegate
+ ObjectName = com.banyan.SimpleThreadPool:type=SimpleThreadPoolCounter
+ ObjectName = com.banyan.deserialize:type=TimeLapseCounter
+ ObjectName = com.banyan.get:type=TimeLapseCounter
+ ObjectName = com.banyan.put:type=TimeLapseCounter
+ ObjectName = com.banyan.serialize:type=TimeLapseCounter
+ ObjectName = com.sun.management:type=DiagnosticCommand
+ ObjectName = com.sun.management:type=HotSpotDiagnostic
+ ObjectName = java.lang:type=ClassLoading
+ ObjectName = java.lang:type=Compilation
+ ObjectName = java.lang:type=GarbageCollector,name=PS MarkSweep
+ ObjectName = java.lang:type=GarbageCollector,name=PS Scavenge
+ ObjectName = java.lang:type=Memory
+ ObjectName = java.lang:type=MemoryManager,name=CodeCacheManager
+ ObjectName = java.lang:type=MemoryManager,name=Metaspace Manager
+ ObjectName = java.lang:type=MemoryPool,name=Code Cache
+ ObjectName = java.lang:type=MemoryPool,name=Compressed Class Space
+ ObjectName = java.lang:type=MemoryPool,name=Metaspace
+ ObjectName = java.lang:type=MemoryPool,name=PS Eden Space
+ ObjectName = java.lang:type=MemoryPool,name=PS Old Gen
+ ObjectName = java.lang:type=MemoryPool,name=PS Survivor Space
+ ObjectName = java.lang:type=OperatingSystem
+ ObjectName = java.lang:type=Runtime
+ ObjectName = java.lang:type=Threading
+ ObjectName = java.nio:type=BufferPool,name=direct
+ ObjectName = java.nio:type=BufferPool,name=mapped
+ ObjectName = java.util.logging:type=Logging
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;This one spits out all the objects available and since I am not writing a general purpose JMX client. I want to listen to specific counters for notification. Now the enum that we defined for TimeLapseCounters will help us here as it holds an object for the deserialize method.&lt;/p&gt;
+
+&lt;p&gt;We will be adding our class for listening to Notification. This class simply spits out the error message it receives from a notification.&lt;/p&gt;
+
+&lt;script src=&quot;https://gist.github.com/vallur/c317ff2125a9297603c5.js&quot;&gt;&lt;/script&gt;
+
+
+&lt;p&gt;In order to listen to notifications we need to add the below two lines to our MiscNotificationListener class&lt;/p&gt;
+
+&lt;script src=&quot;https://gist.github.com/vallur/9d5656495332870e9758.js&quot;&gt;&lt;/script&gt;
+
+
+&lt;p&gt;The final output that includes the notification error messages is listed below&lt;/p&gt;
+
+&lt;script src=&quot;https://gist.github.com/vallur/d8820a29cda0bbcbb496.js&quot;&gt;&lt;/script&gt;
+
+
+&lt;p&gt;&lt;img src=&quot;/img/posts/notification.png&quot; alt=&quot;JMX Monitoring&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;The javax.management package can be used in your application to listen to messages and act accordingly to resolve conflicts. Look for a blog on that soon.&lt;/p&gt;
+
+&lt;div class=&quot;row&quot;&gt;   
+    &lt;div class=&quot;span9 column&quot;&gt;
+            &lt;p class=&quot;pull-right&quot;&gt; &lt;a href=&quot;/blog/JMX-Notification&quot; title=&quot;Previous Post: JMX Notification for alerts&quot;&gt;&lt;i class=&quot;icon-chevron-left&quot;&gt;&lt;/i&gt;&lt;/a&gt;            &lt;a href=&quot;/blog/Protobuf&quot; title=&quot;Next Post: Java Object Binary Serialization Metrics using ProtoBuf&quot;&gt;&lt;i class=&quot;icon-chevron-right&quot;&gt;&lt;/i&gt;&lt;/a&gt;   &lt;/p&gt;  
+    &lt;/div&gt;
+&lt;/div&gt;
+
+
+
+
+&lt;p&gt;&lt;div class=&quot;row&quot;&gt; &lt;br/&gt;
+    &lt;div class=&quot;span9 columns&quot;&gt;  &lt;br/&gt;
+        &lt;h2&gt;Comments Section&lt;/h2&gt;
+        &lt;p&gt;Feel free to comment on the post but keep it clean and on topic.&lt;/p&gt;
+        &lt;div id=&quot;fb-root&quot;&gt;&lt;/div&gt;
+&lt;script&gt;(function(d, s, id) {
+  var js, fjs = d.getElementsByTagName(s)[0];
+  if (d.getElementById(id)) return;
+  js = d.createElement(s); js.id = id;
+  js.src = &quot;//connect.facebook.net/en_US/sdk.js#xfbml=1&amp;amp;version=v2.0&quot;;
+  fjs.parentNode.insertBefore(js, fjs);
+}(document, &#39;script&#39;, &#39;facebook-jssdk&#39;));&lt;/script&gt;
+&lt;div class=&quot;fb-comments&quot; data-href=&quot;http://vallur.github.io/blog/Notification-listener&quot; data-numposts=&quot;5&quot; data-width=&quot;700&quot; data-colorscheme=&quot;light&quot;&gt;&lt;/div&gt;
+&lt;/div&gt;
+&lt;!-- Twitter --&gt;
+&lt;script&gt;!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=&quot;//platform.twitter.com/widgets.js&quot;;fjs.parentNode.insertBefore(js,fjs);}}(document,&quot;script&quot;,&quot;twitter-wjs&quot;);&lt;/script&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;!-- Google + --&gt;
+&lt;script type=&quot;text/javascript&quot;&gt;
+  (function() {
+    var po = document.createElement(&#39;script&#39;); po.type = &#39;text/javascript&#39;; po.async = true;
+    po.src = &#39;https://apis.google.com/js/plusone.js&#39;;
+    var s = document.getElementsByTagName(&#39;script&#39;)[0]; s.parentNode.insertBefore(po, s);
+  })();
+&lt;/script&gt;&lt;/p&gt;
+</content>
+ </entry>
+ 
+ <entry>
+   <title>JMX Notification for alerts</title>
+   <link href="http://vallur.github.com/blog/JMX-Notification"/>
+   <updated>2014-08-09T00:00:00-07:00</updated>
+   <id>http://vallur.github.com/blog/JMX-Notification</id>
+   <content type="html">&lt;p&gt;With the use of javax.management it is possible to notify other users/ machines about cache eviction or perform alerts for errors or warnings.&lt;/p&gt;
+
+&lt;p&gt;The notification on MBeans can effectively used for building self healing systems. Where one server can notify others if it is overloaded so that they can take charge.&lt;/p&gt;
+
+&lt;p&gt;In this example we will see how the notification can be used to show alerts when a error happens.&lt;/p&gt;
+
+&lt;p&gt;The code below throws errors when a random value is hit simulating a error scenario&lt;/p&gt;
+
+&lt;script src=&quot;https://gist.github.com/vallur/a8afdfb52c2be8a9b53b.js&quot;&gt;&lt;/script&gt;
+
+
+&lt;p&gt;I shall be adding these two methods to TimeLapseCounter explained in the previous blog.&lt;/p&gt;
+
+&lt;script src=&quot;https://gist.github.com/vallur/85e32b04ebaabdafd203.js&quot;&gt;&lt;/script&gt;
+
+
+&lt;p&gt;These methods enable the counter to notify when a error is triggered in deSerialize method. All the errors generated will be collected in the Notification Listener in our case it would be JConsole/JVisualVM. We can extend it further to provide a warning when a critical method goes out of SLA by triggering it in the TimeLapseCounter.&lt;/p&gt;
+
+&lt;p&gt;In the above example I am using the AttributeChangeNotification class to notify on errors and warnings. I would ideally like to extend the Notification class and expose the counters. The down side to that approach is to have my implementation class be part of the class path of the NotificationListener which would not solve the purpose. If not in class path we would receive this warning in JConsole.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;Jul 29, 2014 7:42:02 PM ClientNotifForwarder NotifFetcher.fetchOneNotif
+WARNING: Failed to deserialize a notification: java.lang.ClassNotFoundException: com.banyan.jmx.notification.LogErrorNotification (no security manager: RMI class loader disabled)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;My above implementation would work perfectly in all JMX clients.&lt;/p&gt;
+
+&lt;p&gt;This is how the error messages will get displayed in JConsole.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/img/posts/notification.png&quot; alt=&quot;JMX Monitoring&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;The javax.management package can be used in your application to listen to messages and act accordingly to resolve conflicts. Look for a blog on that soon.&lt;/p&gt;
+
+&lt;div class=&quot;row&quot;&gt;   
+    &lt;div class=&quot;span9 column&quot;&gt;
+            &lt;p class=&quot;pull-right&quot;&gt; &lt;a href=&quot;/blog/JMX-MBeans&quot; title=&quot;Previous Post: Monitoring my Java application using JMX MBeans&quot;&gt;&lt;i class=&quot;icon-chevron-left&quot;&gt;&lt;/i&gt;&lt;/a&gt;          &lt;a href=&quot;/blog/Notification-listener&quot; title=&quot;Next Post: JMX Notification Listener&quot;&gt;&lt;i class=&quot;icon-chevron-right&quot;&gt;&lt;/i&gt;&lt;/a&gt;    &lt;/p&gt;  
+    &lt;/div&gt;
+&lt;/div&gt;
+
+
+
+
+&lt;p&gt;&lt;div class=&quot;row&quot;&gt; &lt;br/&gt;
+    &lt;div class=&quot;span9 columns&quot;&gt;  &lt;br/&gt;
+        &lt;h2&gt;Comments Section&lt;/h2&gt;
+        &lt;p&gt;Feel free to comment on the post but keep it clean and on topic.&lt;/p&gt;
+        &lt;div id=&quot;fb-root&quot;&gt;&lt;/div&gt;
+&lt;script&gt;(function(d, s, id) {
+  var js, fjs = d.getElementsByTagName(s)[0];
+  if (d.getElementById(id)) return;
+  js = d.createElement(s); js.id = id;
+  js.src = &quot;//connect.facebook.net/en_US/sdk.js#xfbml=1&amp;amp;version=v2.0&quot;;
+  fjs.parentNode.insertBefore(js, fjs);
+}(document, &#39;script&#39;, &#39;facebook-jssdk&#39;));&lt;/script&gt;
+&lt;div class=&quot;fb-comments&quot; data-href=&quot;http://vallur.github.io/blog/JMX-Notification&quot; data-numposts=&quot;5&quot; data-width=&quot;700&quot; data-colorscheme=&quot;light&quot;&gt;&lt;/div&gt;
+&lt;/div&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;!-- Twitter --&gt;
+&lt;script&gt;!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=&quot;//platform.twitter.com/widgets.js&quot;;fjs.parentNode.insertBefore(js,fjs);}}(document,&quot;script&quot;,&quot;twitter-wjs&quot;);&lt;/script&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;!-- Google + --&gt;
+&lt;script type=&quot;text/javascript&quot;&gt;
+  (function() {
+    var po = document.createElement(&#39;script&#39;); po.type = &#39;text/javascript&#39;; po.async = true;
+    po.src = &#39;https://apis.google.com/js/plusone.js&#39;;
+    var s = document.getElementsByTagName(&#39;script&#39;)[0]; s.parentNode.insertBefore(po, s);
+  })();
+&lt;/script&gt;&lt;/p&gt;
+</content>
+ </entry>
+ 
+ <entry>
+   <title>Monitoring my Java application using JMX MBeans</title>
+   <link href="http://vallur.github.com/blog/JMX-MBeans"/>
+   <updated>2014-08-09T00:00:00-07:00</updated>
+   <id>http://vallur.github.com/blog/JMX-MBeans</id>
+   <content type="html">&lt;h3&gt;Introduction&lt;/h3&gt;
+
+&lt;p&gt;I want to get metrics out of my code. In olden days the best way to do that is by using System.out.println. I want to use the below code and see how fast it takes to run serialization and deserialization along with gzip compression.&lt;/p&gt;
+
+&lt;script src=&quot;https://gist.github.com/vallur/976be1ccf23066e59d87.js&quot;&gt;&lt;/script&gt;
+
+
+&lt;p&gt;The above code is messy in lot of ways and particularly not reliable in collecting the metrics. Also this code does not give metrics for each run will get quite a few PMD violations. How do i get rid of all these issues and collect proper metrics for how well my serialization code performs.&lt;/p&gt;
+
+&lt;p&gt;The best way to do that is by using JMX MBeans which would expose all the needed metrics to JConsole.&lt;/p&gt;
+
+&lt;h3&gt;JMX MBeans&lt;/h3&gt;
+
+&lt;p&gt;We define our MBean interface that holds all the attributes to be exposed to JConsole&lt;/p&gt;
+
+&lt;script src=&quot;https://gist.github.com/vallur/f9392eb6fcdd1aa297f9.js&quot;&gt;&lt;/script&gt;
+
+
+&lt;p&gt;In the above all long getter that do not have a matching setters will show a neat graph like below when you double click.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/img/posts/monitoring.png&quot; alt=&quot;JMX Monitoring&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Now for the actual implementation of the counter.&lt;/p&gt;
+
+&lt;script src=&quot;https://gist.github.com/vallur/02004e61c73290acbf48.js&quot;&gt;&lt;/script&gt;
+
+
+&lt;p&gt;The code above is pretty straight forward. All it has is to do with holding values for the time it takes to process single request and a counter to see the number of requests processed. The other information like total average are all calculated. Now we need to expose this counter for each public method which we want to assess for performance.&lt;/p&gt;
+
+&lt;p&gt;I would introduce an enum for exposing the counter for each method like below.&lt;/p&gt;
+
+&lt;script src=&quot;https://gist.github.com/vallur/b90dd2c075ffa69cc282.js&quot;&gt;&lt;/script&gt;
+
+
+&lt;p&gt;All the counters for the methods defined in the enum are preregistered with objectName and set to be used. The object name MBean can be monitored in JConsole or JVisualVM using the fully qualified class / method name.&lt;/p&gt;
+
+&lt;p&gt;Now in order to have the counters set with proper value we include it as part of the product code like the sample given below&lt;/p&gt;
+
+&lt;script src=&quot;https://gist.github.com/vallur/3bc52fcbbaf3105fdbc8.js&quot;&gt;&lt;/script&gt;
+
+
+&lt;p&gt;The key part from the above code that enables monitering is &lt;pre&gt;TimeLapseCounters.serialize.getCounter().setCurrentProcessTimeNS(time);&lt;/pre&gt;&lt;/p&gt;
+
+&lt;p&gt;Now I can increase the number of threads in my thread pool and have the counters collect the metrics and we can monitor it from JConsole/JVisualVM.&lt;/p&gt;
+
+&lt;h3&gt;&lt;u&gt;JVisualVM screen shot&lt;/u&gt;&lt;/h3&gt;
+
+&lt;p&gt;&lt;img src=&quot;/img/posts/miscjmx.png&quot; alt=&quot;JMX Monitoring&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Now we can see all the counters exposed by the MBeans. I can monitor the performance of the method. I can clearly see that the code is spending too much time in deserializing even though the bytes to read has reduced significantly. The time taken for deserialization does not help when it comes to performance.&lt;/p&gt;
+
+&lt;p&gt;You can find more blogs later that talks about serialization metrics, compression metrics and notification.&lt;/p&gt;
+
+&lt;div class=&quot;row&quot;&gt;   
+    &lt;div class=&quot;span9 column&quot;&gt;
+            &lt;p class=&quot;pull-right&quot;&gt; &lt;a href=&quot;/blog/File-Upload&quot; title=&quot;Previous Post: File upload using java servlet and Tomcat&quot;&gt;&lt;i class=&quot;icon-chevron-left&quot;&gt;&lt;/i&gt;&lt;/a&gt;           &lt;a href=&quot;/blog/JMX-Notification&quot; title=&quot;Next Post: JMX Notification for alerts&quot;&gt;&lt;i class=&quot;icon-chevron-right&quot;&gt;&lt;/i&gt;&lt;/a&gt;   &lt;/p&gt;  
+    &lt;/div&gt;
+&lt;/div&gt;
+
+
+
+
+&lt;p&gt;&lt;div class=&quot;row&quot;&gt; &lt;br/&gt;
+    &lt;div class=&quot;span9 columns&quot;&gt;  &lt;br/&gt;
+        &lt;h2&gt;Comments Section&lt;/h2&gt;
+        &lt;p&gt;Feel free to comment on the post but keep it clean and on topic.&lt;/p&gt;
+        &lt;div id=&quot;fb-root&quot;&gt;&lt;/div&gt;
+&lt;script&gt;(function(d, s, id) {
+  var js, fjs = d.getElementsByTagName(s)[0];
+  if (d.getElementById(id)) return;
+  js = d.createElement(s); js.id = id;
+  js.src = &quot;//connect.facebook.net/en_US/sdk.js#xfbml=1&amp;amp;version=v2.0&quot;;
+  fjs.parentNode.insertBefore(js, fjs);
+}(document, &#39;script&#39;, &#39;facebook-jssdk&#39;));&lt;/script&gt;
+&lt;div class=&quot;fb-comments&quot; data-href=&quot;http://vallur.github.io/blog/JMX-MBeans&quot; data-numposts=&quot;5&quot; data-width=&quot;700&quot; data-colorscheme=&quot;light&quot;&gt;&lt;/div&gt;
+&lt;/div&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;!-- Twitter --&gt;
+&lt;script&gt;!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=&quot;//platform.twitter.com/widgets.js&quot;;fjs.parentNode.insertBefore(js,fjs);}}(document,&quot;script&quot;,&quot;twitter-wjs&quot;);&lt;/script&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;!-- Google + --&gt;
+&lt;script type=&quot;text/javascript&quot;&gt;
+  (function() {
+    var po = document.createElement(&#39;script&#39;); po.type = &#39;text/javascript&#39;; po.async = true;
+    po.src = &#39;https://apis.google.com/js/plusone.js&#39;;
+    var s = document.getElementsByTagName(&#39;script&#39;)[0]; s.parentNode.insertBefore(po, s);
+  })();
+&lt;/script&gt;&lt;/p&gt;
+</content>
+ </entry>
+ 
+ <entry>
+   <title>File upload using java servlet and Tomcat</title>
+   <link href="http://vallur.github.com/blog/File-Upload"/>
+   <updated>2014-08-09T00:00:00-07:00</updated>
+   <id>http://vallur.github.com/blog/File-Upload</id>
+   <content type="html">&lt;p&gt;As part of this blog we will look at how to upload and process a file using java Servlet API.
+I will not be using the Apache File-Upload API.&lt;/p&gt;
+
+&lt;p&gt;When  defining your servlet determine a folder where you want the temporary file to be downloaded.&lt;/p&gt;
+
+&lt;p&gt;you can have the below MultipartConfig annotation as part of the Servlet class file like below.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;@MultipartConfig(location=&quot;/tmp&quot;, fileSizeThreshold=-1L, maxFileSize=10*1024*1024, maxRequestSize=10*1024*1024)
+public class FileUploaderServlet extends HttpServlet
+{
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;or you can have it as a configuration as part of the web.xml file.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;&amp;lt;multipart-config&amp;gt;
+      &amp;lt;location&amp;gt;/tmp&amp;lt;/location&amp;gt;
+      &amp;lt;max-file-size&amp;gt;10485760&amp;lt;/max-file-size&amp;gt;
+      &amp;lt;max-request-size&amp;gt;10489760&amp;lt;/max-request-size&amp;gt;
+      &amp;lt;file-size-threshold&amp;gt;-1L&amp;lt;/file-size-threshold&amp;gt;
+&amp;lt;/multipart-config&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;If we are developing a general purpose file up-loader using the configuration in web.xml is the recommended approach. There are default values for all of the above which unlimited for all parameters . In my example my threshold is greater than the max-file-size so everything is instantaneous and in memory.&lt;/p&gt;
+
+&lt;p&gt;We are giving a sledge hammer here and the user can provide a large enough file to block the network. I would prefer the file size to be a max of 10 MB which is close to 10% of a Gigabit network traffic for a second. Any amount more than that will have the potential to create issues when more users are trying to download or upload contents to a server which is already processing other requests and potentially bring the server to a crawl for a few seconds.&lt;/p&gt;
+
+&lt;p&gt;Now for the code part&lt;/p&gt;
+
+&lt;script src=&quot;https://gist.github.com/vallur/1ce92f3df5347ae2907a.js&quot;&gt;&lt;/script&gt;
+
+
+&lt;p&gt;The below are the steps performed&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Verify if the request is multipart if not just return.&lt;/li&gt;
+&lt;li&gt;Prepare up the metadata information to parse the csv file.&lt;/li&gt;
+&lt;li&gt;Use the FilePart from Part to get the inputstream that holds the stream information.&lt;/li&gt;
+&lt;li&gt;Always use a BufferedReader on the InputStream as that would further mitigate the load on the network based on the time taken for processing.&lt;/li&gt;
+&lt;li&gt;We read through the file untill we get a line that is null(End of File). It is possible to get a null in the beginning so we read the headers inside of the loop.&lt;/li&gt;
+&lt;li&gt;Merge the results coming from the file into Banyan.&lt;/li&gt;
+&lt;/ul&gt;
+
+
+&lt;p&gt;I had introduced a new set of items IBranch and DataBranch these are the basic building blocks of banyan which is built on top of the ArrayMap interface. Banyan uses a modified version of the above class to upload contents of a csv into the data store. Banyan also supports other formats like JSON but not through this example.&lt;/p&gt;
+
+&lt;div class=&quot;row&quot;&gt;   
+    &lt;div class=&quot;span9 column&quot;&gt;
+            &lt;p class=&quot;pull-right&quot;&gt; &lt;a href=&quot;/blog/split-data&quot; title=&quot;Previous Post: How to evenly split data across different machines or buckets?&quot;&gt;&lt;i class=&quot;icon-chevron-left&quot;&gt;&lt;/i&gt;&lt;/a&gt;           &lt;a href=&quot;/blog/JMX-MBeans&quot; title=&quot;Next Post: Monitoring my Java application using JMX MBeans&quot;&gt;&lt;i class=&quot;icon-chevron-right&quot;&gt;&lt;/i&gt;&lt;/a&gt;     &lt;/p&gt;  
+    &lt;/div&gt;
+&lt;/div&gt;
+
+
+
+
+&lt;p&gt;&lt;div class=&quot;row&quot;&gt; &lt;br/&gt;
+    &lt;div class=&quot;span9 columns&quot;&gt;  &lt;br/&gt;
+        &lt;h2&gt;Comments Section&lt;/h2&gt;
+        &lt;p&gt;Feel free to comment on the post but keep it clean and on topic.&lt;/p&gt;
+        &lt;div id=&quot;fb-root&quot;&gt;&lt;/div&gt;
+&lt;script&gt;(function(d, s, id) {
+  var js, fjs = d.getElementsByTagName(s)[0];
+  if (d.getElementById(id)) return;
+  js = d.createElement(s); js.id = id;
+  js.src = &quot;//connect.facebook.net/en_US/sdk.js#xfbml=1&amp;amp;version=v2.0&quot;;
+  fjs.parentNode.insertBefore(js, fjs);
+}(document, &#39;script&#39;, &#39;facebook-jssdk&#39;));&lt;/script&gt;
+&lt;div class=&quot;fb-comments&quot; data-href=&quot;http://vallur.github.io/blog/File-Upload&quot; data-numposts=&quot;5&quot; data-width=&quot;700&quot; data-colorscheme=&quot;light&quot;&gt;&lt;/div&gt;
+&lt;/div&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;!-- Twitter --&gt;
+&lt;script&gt;!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=&quot;//platform.twitter.com/widgets.js&quot;;fjs.parentNode.insertBefore(js,fjs);}}(document,&quot;script&quot;,&quot;twitter-wjs&quot;);&lt;/script&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;!-- Google + --&gt;
+&lt;script type=&quot;text/javascript&quot;&gt;
+  (function() {
+    var po = document.createElement(&#39;script&#39;); po.type = &#39;text/javascript&#39;; po.async = true;
+    po.src = &#39;https://apis.google.com/js/plusone.js&#39;;
+    var s = document.getElementsByTagName(&#39;script&#39;)[0]; s.parentNode.insertBefore(po, s);
+  })();
+&lt;/script&gt;&lt;/p&gt;
+</content>
+ </entry>
+ 
+ <entry>
+   <title>How to evenly split data across different machines or buckets?</title>
+   <link href="http://vallur.github.com/blog/split-data"/>
+   <updated>2014-08-08T00:00:00-07:00</updated>
+   <id>http://vallur.github.com/blog/split-data</id>
+   <content type="html">&lt;p&gt;Here i am not going to show how this is done in cassandra or MongoDB. But i am going to demonstrate how this can be effectively done from code using java. You will not be seeing code specific to communicating to different machines but will demonstrate the same using my own custom implementation of ArrayMap and % (MOD) operator.&lt;/p&gt;
+
+&lt;p&gt;First we need to understand the concept of hashing in java.&lt;/p&gt;
+
+&lt;h2&gt;What is hashing?&lt;/h2&gt;
+
+&lt;p&gt;Hashing is a way at which an object&#39;s data can be represented by a integer value. Since integers have a max of 231-1 there is potential to have collisions based on the key value assuming the keys can be anything.&lt;/p&gt;
+
+&lt;p&gt;We will be using the java hashCode function to get the hash code of an object as shown in the method below.&lt;/p&gt;
+
+&lt;script src=&quot;https://gist.github.com/vallur/9585a0a37e333c89c312.js&quot;&gt;&lt;/script&gt;
+
+
+&lt;p&gt;This code will provide the bucket to which a key belongs to. In order to distribute to a evenly growing bucket we will be using the below at the storage type.&lt;/p&gt;
+
+&lt;p&gt;List&amp;lt;MapEntry&amp;lt;K, V&gt;&gt;[] table = null;&lt;/p&gt;
+
+&lt;p&gt;Here the array is holding the different buckets and list is the bucket. Here we are not concerned about collisions as the key that belongs to a bucket will be inserted inside the list.&lt;/p&gt;
+
+&lt;p&gt;class ArrayMap initializer&lt;/p&gt;
+
+&lt;script src=&quot;https://gist.github.com/vallur/219f927c2293f56eb853.js&quot;&gt;&lt;/script&gt;
+
+
+&lt;p&gt;Code for performing puts in the array.&lt;/p&gt;
+
+&lt;script src=&quot;https://gist.github.com/vallur/01e99a2d357a2bc164c8.js&quot;&gt;&lt;/script&gt;
+
+
+&lt;p&gt;If I was writing this as a no-sql solution i would be using a similar hash map on each server to maintain a bucket and list so rebalancing can be done easier.&lt;/p&gt;
+
+&lt;script src=&quot;https://gist.github.com/vallur/48b68d0149d88726054a.js&quot;&gt;&lt;/script&gt;
+
+
+&lt;p&gt;Let us see if the above achieves o(1) for get, put and delete. I will not worry about delete just yet.&lt;/p&gt;
+
+&lt;p&gt;Adding new values in this approach is definitely o(1) as we pre create the arrays and there is sometimes a onetime minor cost for initializing the LinkedList. Gets on the other hand on a linked list are o(n) which we need faster than puts. The bucket size that determines the number of servers can be small but the next one on each server we need to keep it as big as possible just to ensure each key  lands in its own bucket and the LinkedList is used as a means for conflict resolution. To achieve the o(1) for gets and puts we will be maintaining a smaller number of servers as buckets and a Big Table inside each server for holding the Key,Value.&lt;/p&gt;
+
+&lt;p&gt;Big Table as part of each server need not be n&lt;sup&gt;2&lt;/sup&gt; for future growth. It can just be n or n/2 as the size of the array grows it becomes counter productive in memory allocation and usage. Using n/2 array size with a max of 1 best case and 20 worst case LinkedList size gives the best performance. The maximum bucket Size i have experimented with is 172 million and the linked list size having an average of 1 to 10.&lt;/p&gt;
+
+&lt;p&gt;As simple as it seems this has its own complexities in performing range queries or a select * operation. Let us tackle the select * problem first. We can tackle this by providing a custom EntrySet implementation as outlined below&lt;/p&gt;
+
+&lt;script src=&quot;https://gist.github.com/vallur/b44a337568f506f2abbe.js&quot;&gt;&lt;/script&gt;
+
+
+&lt;p&gt;The important method in the above is the nextNode and the forEach. Both of them work in a very similar way. One problem with the above approach is that there are nulls in the bucket which will have to be ignored. Until the buckets are fully filled the loops will have to run through the nulls and ignore them.&lt;/p&gt;
+
+&lt;p&gt;In the above the foreach is faster than Iterator. As the foreach uses the Iterator on a LinkedList which works based on node.next where the Iterator uses indexing. Indexing on LinkedList is done by o(n). The list on the bucket should be very small this logic should be noted.&lt;/p&gt;
+
+&lt;p&gt;Now this solution works great for get, put and full list. If we have to do range queries there is no possible way to do that. But this system will work effectively for range queries as well as the ranges can be split into buckets and queried on the different buckets in parallel making range queries extremely fast. The result can be merged by the client for display purposes.&lt;/p&gt;
+
+&lt;p&gt;Look for a blog link here for how to do rebalance.
+Look for a blog link here for how to do range queries.&lt;/p&gt;
+
+&lt;p&gt;I am not tackling sorting in this solution as sorting will be client side operation as the keys can be distributed across different machines and there is no guarantee to have them sorted on insert based on the actual key unless the key itself is an integer value. Sorting will be handled by the driver or router.&lt;/p&gt;
+
+&lt;p&gt;Since this is a sample code it does not contain the synchronization logic for the list creation. If not done will have unexpected results while accessed from multiple threads.&lt;/p&gt;
+
+&lt;div class=&quot;row&quot;&gt;   
+    &lt;div class=&quot;span9 column&quot;&gt;
+            &lt;p class=&quot;pull-right&quot;&gt; &lt;a href=&quot;/blog/rebalance&quot; title=&quot;Previous Post: Rebalancing data across different shards&quot;&gt;&lt;i class=&quot;icon-chevron-left&quot;&gt;&lt;/i&gt;&lt;/a&gt;          &lt;a href=&quot;/blog/File-Upload&quot; title=&quot;Next Post: File upload using java servlet and Tomcat&quot;&gt;&lt;i class=&quot;icon-chevron-right&quot;&gt;&lt;/i&gt;&lt;/a&gt;      &lt;/p&gt;  
+    &lt;/div&gt;
+&lt;/div&gt;
+
+
+
+
+&lt;p&gt;&lt;div class=&quot;row&quot;&gt; &lt;br/&gt;
+    &lt;div class=&quot;span9 columns&quot;&gt;  &lt;br/&gt;
+        &lt;h2&gt;Comments Section&lt;/h2&gt;
+        &lt;p&gt;Feel free to comment on the post but keep it clean and on topic.&lt;/p&gt;
+        &lt;div id=&quot;fb-root&quot;&gt;&lt;/div&gt;
+&lt;script&gt;(function(d, s, id) {
+  var js, fjs = d.getElementsByTagName(s)[0];
+  if (d.getElementById(id)) return;
+  js = d.createElement(s); js.id = id;
+  js.src = &quot;//connect.facebook.net/en_US/sdk.js#xfbml=1&amp;amp;version=v2.0&quot;;
+  fjs.parentNode.insertBefore(js, fjs);
+}(document, &#39;script&#39;, &#39;facebook-jssdk&#39;));&lt;/script&gt;
+&lt;div class=&quot;fb-comments&quot; data-href=&quot;http://vallur.github.io/blog/split-data&quot; data-numposts=&quot;5&quot; data-width=&quot;700&quot; data-colorscheme=&quot;light&quot;&gt;&lt;/div&gt;
+&lt;/div&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;!-- Twitter --&gt;
+&lt;script&gt;!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=&quot;//platform.twitter.com/widgets.js&quot;;fjs.parentNode.insertBefore(js,fjs);}}(document,&quot;script&quot;,&quot;twitter-wjs&quot;);&lt;/script&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;!-- Google + --&gt;
+&lt;script type=&quot;text/javascript&quot;&gt;
+  (function() {
+    var po = document.createElement(&#39;script&#39;); po.type = &#39;text/javascript&#39;; po.async = true;
+    po.src = &#39;https://apis.google.com/js/plusone.js&#39;;
+    var s = document.getElementsByTagName(&#39;script&#39;)[0]; s.parentNode.insertBefore(po, s);
+  })();
+&lt;/script&gt;&lt;/p&gt;
+</content>
+ </entry>
+ 
+ <entry>
+   <title>Rebalancing data across different shards</title>
+   <link href="http://vallur.github.com/blog/rebalance"/>
+   <updated>2014-08-08T00:00:00-07:00</updated>
+   <id>http://vallur.github.com/blog/rebalance</id>
+   <content type="html">&lt;p&gt;This is a continuation of the post how to split keys evenly across different buckets/machines.&lt;/p&gt;
+
+&lt;p&gt;In this we will be looking at how to rebalance the buckets when we want to increase a bucket size as this operation is a little trickier than simple array copy.&lt;/p&gt;
+
+&lt;p&gt;I had outlined the code below.&lt;/p&gt;
+
+&lt;script src=&quot;https://gist.github.com/vallur/11e497d748f41d3783a1.js&quot;&gt;&lt;/script&gt;
+
+
+&lt;p&gt;There are 4 steps involved in rebalancing&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;Set the rebalancing in progress flag to true so the get operation can look for a key in the new bucket when not available on the old one.&lt;/li&gt;
+&lt;li&gt;Set the bucket size value to the new bucket size. We maintain a variable m_oldBucketSize for the get operation fallback logic.&lt;/li&gt;
+&lt;li&gt;Loop through the iterator and copy all the elements that need to go to new bucket.&lt;/li&gt;
+&lt;li&gt;Loop through the iterator and remove all elements from old bucket.&lt;/li&gt;
+&lt;/ol&gt;
+
+
+&lt;p&gt;Steps 3 and 4 are done separately to provide consistent responses to get and put operations.&lt;/p&gt;
+
+&lt;p&gt;There is a slight change in the get operation compared to the previous blog.&lt;/p&gt;
+
+&lt;script src=&quot;https://gist.github.com/vallur/6f720f275595e9c3025f.js&quot;&gt;&lt;/script&gt;
+
+
+&lt;p&gt;Sample code that shows how the rebalancing would be effective and would work.&lt;/p&gt;
+
+&lt;script src=&quot;https://gist.github.com/vallur/2688ba81c2b72b1bcee2.js&quot;&gt;&lt;/script&gt;
+
+
+&lt;h3&gt;Output:&lt;/h3&gt;
+
+&lt;pre&gt;&lt;/code&gt;
+4 - key Belongs to bucket0
+1 - key Belongs to bucket1
+5 - key Belongs to bucket1
+2 - key Belongs to bucket2
+3 - key Belongs to bucket3
+result after rebalance
+5 - key Belongs to Bucket0
+1 - key Belongs to bucket1
+2 - key Belongs to bucket2
+3 - key Belongs to bucket3
+4 - key Belongs to Bucket4
+&lt;/code&gt;&lt;/pre&gt;
+
+
+
+
+&lt;div class=&quot;row&quot;&gt;   
+    &lt;div class=&quot;span9 column&quot;&gt;
+            &lt;p class=&quot;pull-right&quot;&gt; &lt;a href=&quot;/blog/ThrowableVsException&quot; title=&quot;Previous Post: Throwable Vs Exception which one to catch?&quot;&gt;&lt;i class=&quot;icon-chevron-left&quot;&gt;&lt;/i&gt;&lt;/a&gt;             &lt;a href=&quot;/blog/split-data&quot; title=&quot;Next Post: How to evenly split data across different machines or buckets?&quot;&gt;&lt;i class=&quot;icon-chevron-right&quot;&gt;&lt;/i&gt;&lt;/a&gt;      &lt;/p&gt;  
+    &lt;/div&gt;
+&lt;/div&gt;
+
+
+
+
+&lt;p&gt;&lt;div class=&quot;row&quot;&gt; &lt;br/&gt;
+    &lt;div class=&quot;span9 columns&quot;&gt;  &lt;br/&gt;
+        &lt;h2&gt;Comments Section&lt;/h2&gt;
+        &lt;p&gt;Feel free to comment on the post but keep it clean and on topic.&lt;/p&gt;
+        &lt;div id=&quot;fb-root&quot;&gt;&lt;/div&gt;
+&lt;script&gt;(function(d, s, id) {
+  var js, fjs = d.getElementsByTagName(s)[0];
+  if (d.getElementById(id)) return;
+  js = d.createElement(s); js.id = id;
+  js.src = &quot;//connect.facebook.net/en_US/sdk.js#xfbml=1&amp;amp;version=v2.0&quot;;
+  fjs.parentNode.insertBefore(js, fjs);
+}(document, &#39;script&#39;, &#39;facebook-jssdk&#39;));&lt;/script&gt;
+&lt;div class=&quot;fb-comments&quot; data-href=&quot;http://vallur.github.io/blog/rebalance&quot; data-numposts=&quot;5&quot; data-width=&quot;700&quot; data-colorscheme=&quot;light&quot;&gt;&lt;/div&gt;
+&lt;/div&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;!-- Twitter --&gt;
+&lt;script&gt;!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=&quot;//platform.twitter.com/widgets.js&quot;;fjs.parentNode.insertBefore(js,fjs);}}(document,&quot;script&quot;,&quot;twitter-wjs&quot;);&lt;/script&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;!-- Google + --&gt;
+&lt;script type=&quot;text/javascript&quot;&gt;
+  (function() {
+    var po = document.createElement(&#39;script&#39;); po.type = &#39;text/javascript&#39;; po.async = true;
+    po.src = &#39;https://apis.google.com/js/plusone.js&#39;;
+    var s = document.getElementsByTagName(&#39;script&#39;)[0]; s.parentNode.insertBefore(po, s);
+  })();
+&lt;/script&gt;&lt;/p&gt;
+</content>
+ </entry>
+ 
+ <entry>
+   <title>Throwable Vs Exception which one to catch?</title>
+   <link href="http://vallur.github.com/blog/ThrowableVsException"/>
+   <updated>2014-08-08T00:00:00-07:00</updated>
+   <id>http://vallur.github.com/blog/ThrowableVsException</id>
+   <content type="html">&lt;p&gt;This is a great discussion topic to either impress your fellow developer or offend him.&lt;/p&gt;
+
+&lt;p&gt;I shall be dumping my brain out here to show it matters to catch throwable sometimes compared to Exception. Let us look at the below scenarios.&lt;/p&gt;
+
+&lt;p&gt;I was writing my web application using tomcat and after some iterative changes and unit test changes my unit test succeeded but my web app hangs on a servlet listener class. I kept waiting for sometime and nothing happened. Was looking for an error all it said was failed for the previous error in the log file. I debugged through the code and it puked out on the middle of a method in one of the classes and went directly to the finally block. Then i did catch Throwable to log the error before coming out.&lt;/p&gt;
+
+&lt;p&gt;The error i got is given below.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;java.lang.NoSuchMethodError: com.google.common.base.Stopwatch.createStarted()Lcom/google/common/base/Stopwatch;
+ at TreeStor.DataStor.deSerialize(DataStor.java:148)
+ at TreeStor.DataStor.getInstance(DataStor.java:42)
+ at TreeStor.Listener.DeSerializeListener.contextInitialized(DeSerializeListener.java:47)
+ at org.apache.catalina.core.StandardContext.listenerStart(StandardContext.java:4760)
+ at org.apache.catalina.core.StandardContext.startInternal(StandardContext.java:5184)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;of course it is my fault I had downloaded 3 different versions of guava API compared to using only the latest. This is the only class i used. I used the Guava API to test benchmark on their hash map implementation with java&#39;s as well as mine. Ended up using sun JRE hashMap in the end.&lt;/p&gt;
+
+&lt;p&gt;Now I don&#39;t need Throwable, right? wrong! I ran the web app again and it failed again with the error below&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;java.lang.NoClassDefFoundError: org/xerial/snappy/SnappyOutputStream
+ at TreeStor.DataStor.deSerialize(DataStor.java:154)
+ at TreeStor.DataStor.getInstance(DataStor.java:42)
+ at TreeStor.Listener.DeSerializeListener.contextInitialized(DeSerializeListener.java:47)
+ at org.apache.catalina.core.StandardContext.listenerStart(StandardContext.java:4760)
+ at org.apache.catalina.core.StandardContext.startInternal(StandardContext.java:5184)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;The above two are usually user error or OPS error which can happen when new software is installed or during development. But ironically very hard to troubleshoot when it happens. Imagine if you have a dependency on spring and you forgot to package one of the jar files, then good luck finding which one without catching Throwable. This error happens when you have a class during compile time and not during run time.&lt;/p&gt;
+
+&lt;p&gt;If you catch Throwable in one of your sub methods you will have to wrap it with your own exception for the cause chain to be bubbled up.&lt;/p&gt;
+
+&lt;p&gt;Next for my most favorite error where I can show some tricks. What do you do when you get
+&lt;code&gt;OutOfMemoryError&lt;/code&gt;.&lt;/p&gt;
+
+&lt;script src=&quot;https://gist.github.com/vallur/91ac53d1f0abae5566eb.js&quot;&gt;&lt;/script&gt;
+
+
+&lt;p&gt;The vm option i choose to force the error is &quot;-Xms1m -Xmx1m&quot;. This option only allocates 1 MB for the class to force it to throw this error. As you can see even though the class fails with the below error, it still lets the system continue to do the rest of the operation.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;java.lang.OutOfMemoryError: Java heap space
+ at java.util.Arrays.copyOf(Arrays.java:3204)
+ at java.util.Arrays.copyOf(Arrays.java:3175)
+ at java.util.ArrayList.grow(ArrayList.java:246)
+ at java.util.ArrayList.ensureExplicitCapacity(ArrayList.java:220)
+ at java.util.ArrayList.ensureCapacityInternal(ArrayList.java:212)
+ at java.util.ArrayList.add(ArrayList.java:443)
+ at misc.MiscTest.main(MiscTest.java:18)
+ at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+ at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+ at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+ at java.lang.reflect.Method.invoke(Method.java:483)
+ at com.intellij.rt.execution.application.AppMain.main(AppMain.java:134)
+give a closure for your application or this method
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Usually when we write memory intensive applications, we would want to give the system some time before asking it to retry the logic when the OutOfMemory error occurs. Cache eviction can be done to free some memory while this error occurs and then retry.&lt;/p&gt;
+
+&lt;p&gt;While running memory intensive application and using this way of coding use the VM option -XX:+UseConcMarkSweepGC and its counterparts to avoid stop the world GC. I shall blog about the different JVM options at a different time.&lt;/p&gt;
+
+&lt;p&gt;To conclude based on what you are developing I would suggest you to write your own Exception handling logic where you will decide if something is error or exception and if you can recover from it  or not. Catch the throwable for logging the exception chain in most cases.&lt;/p&gt;
+
+&lt;div class=&quot;row&quot;&gt;   
+    &lt;div class=&quot;span9 column&quot;&gt;
+            &lt;p class=&quot;pull-right&quot;&gt; &lt;a href=&quot;/blog/Thread-interrupt&quot; title=&quot;Previous Post: How to interrupt a thread in java?&quot;&gt;&lt;i class=&quot;icon-chevron-left&quot;&gt;&lt;/i&gt;&lt;/a&gt;             &lt;a href=&quot;/blog/rebalance&quot; title=&quot;Next Post: Rebalancing data across different shards&quot;&gt;&lt;i class=&quot;icon-chevron-right&quot;&gt;&lt;/i&gt;&lt;/a&gt;     &lt;/p&gt;  
+    &lt;/div&gt;
+&lt;/div&gt;
+
+
+
+
+&lt;p&gt;&lt;div class=&quot;row&quot;&gt; &lt;br/&gt;
+    &lt;div class=&quot;span9 columns&quot;&gt;  &lt;br/&gt;
+        &lt;h2&gt;Comments Section&lt;/h2&gt;
+        &lt;p&gt;Feel free to comment on the post but keep it clean and on topic.&lt;/p&gt;
+        &lt;div id=&quot;fb-root&quot;&gt;&lt;/div&gt;
+&lt;script&gt;(function(d, s, id) {
+  var js, fjs = d.getElementsByTagName(s)[0];
+  if (d.getElementById(id)) return;
+  js = d.createElement(s); js.id = id;
+  js.src = &quot;//connect.facebook.net/en_US/sdk.js#xfbml=1&amp;amp;version=v2.0&quot;;
+  fjs.parentNode.insertBefore(js, fjs);
+}(document, &#39;script&#39;, &#39;facebook-jssdk&#39;));&lt;/script&gt;
+&lt;div class=&quot;fb-comments&quot; data-href=&quot;http://vallur.github.io/blog/ThrowableVsException&quot; data-numposts=&quot;5&quot; data-width=&quot;700&quot; data-colorscheme=&quot;light&quot;&gt;&lt;/div&gt;
+&lt;/div&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;!-- Twitter --&gt;
+&lt;script&gt;!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=&quot;//platform.twitter.com/widgets.js&quot;;fjs.parentNode.insertBefore(js,fjs);}}(document,&quot;script&quot;,&quot;twitter-wjs&quot;);&lt;/script&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;!-- Google + --&gt;
+&lt;script type=&quot;text/javascript&quot;&gt;
+  (function() {
+    var po = document.createElement(&#39;script&#39;); po.type = &#39;text/javascript&#39;; po.async = true;
+    po.src = &#39;https://apis.google.com/js/plusone.js&#39;;
+    var s = document.getElementsByTagName(&#39;script&#39;)[0]; s.parentNode.insertBefore(po, s);
+  })();
+&lt;/script&gt;&lt;/p&gt;
+</content>
+ </entry>
+ 
+ <entry>
+   <title>How to interrupt a thread in java?</title>
+   <link href="http://vallur.github.com/blog/Thread-interrupt"/>
+   <updated>2014-08-08T00:00:00-07:00</updated>
+   <id>http://vallur.github.com/blog/Thread-interrupt</id>
+   <content type="html">&lt;p&gt;Just like how the OS allows us to kill a long running task we should have the flexibility in our code to stop long running threads.&lt;/p&gt;
+
+&lt;p&gt;There are many ways to do this.&lt;/p&gt;
+
+&lt;p&gt;By calling the Thread.interrupt method. Including the comments from the interrupt method of the thread. Based on code comments from JDK documentation below is the behavior of the interrupt method. If a thread is blocked in an invocation of the wait, join or sleep method the thread will receive a Interrupted exception to continue to the exception handling block of the thread.&lt;/p&gt;
+
+&lt;p&gt;If a thread is blocked in an IO operation. The underlying IO channel will be closed and the thread will be interrupted. Interrupting a not alive thread has no effect.&lt;/p&gt;
+
+&lt;p&gt;Now after reading this it looks like the thread will be killed just by calling the interrupt method. But it does not work that way. If we write our code like below there is no way for the process to interrupt the thread.&lt;/p&gt;
+
+&lt;p&gt;The thread code below will keep continuing and will ignore the interrupt signal as long as the //do some operation block does not involve handling IO operations.&lt;/p&gt;
+
+&lt;script src=&quot;https://gist.github.com/vallur/dbcc5916bb8cf972b67a.js&quot;&gt;&lt;/script&gt;
+
+
+&lt;p&gt;When operating with thread it is always safe to use a boolean flag to give the underlying thread or runnable breathing time and graciously have a calm death. Hence the introduction of Simple Thread example given below which shows how to gracefully exit threads.&lt;/p&gt;
+
+&lt;script src=&quot;https://gist.github.com/vallur/33ffbda211665a2dfa85.js&quot;&gt;&lt;/script&gt;
+
+
+&lt;p&gt;In order for the above method to be effective we need to add the below interrupt method to the SimpleThreadPool&lt;/p&gt;
+
+&lt;script src=&quot;https://gist.github.com/vallur/960b4101f15e7f989674.js&quot;&gt;&lt;/script&gt;
+
+
+&lt;p&gt;Disclaimer: Unless properly developed a java thread will leak and never die until the JVM quits even if the interrupt method is called.&lt;/p&gt;
+
+&lt;div class=&quot;row&quot;&gt;   
+    &lt;div class=&quot;span9 column&quot;&gt;
+            &lt;p class=&quot;pull-right&quot;&gt; &lt;a href=&quot;/blog/Thread-Pool-Executor&quot; title=&quot;Previous Post: Thread Pool Executor&quot;&gt;&lt;i class=&quot;icon-chevron-left&quot;&gt;&lt;/i&gt;&lt;/a&gt;           &lt;a href=&quot;/blog/ThrowableVsException&quot; title=&quot;Next Post: Throwable Vs Exception which one to catch?&quot;&gt;&lt;i class=&quot;icon-chevron-right&quot;&gt;&lt;/i&gt;&lt;/a&gt;    &lt;/p&gt;  
+    &lt;/div&gt;
+&lt;/div&gt;
+
+
+
+
+&lt;p&gt;&lt;div class=&quot;row&quot;&gt; &lt;br/&gt;
+    &lt;div class=&quot;span9 columns&quot;&gt;  &lt;br/&gt;
+        &lt;h2&gt;Comments Section&lt;/h2&gt;
+        &lt;p&gt;Feel free to comment on the post but keep it clean and on topic.&lt;/p&gt;
+        &lt;div id=&quot;fb-root&quot;&gt;&lt;/div&gt;
+&lt;script&gt;(function(d, s, id) {
+  var js, fjs = d.getElementsByTagName(s)[0];
+  if (d.getElementById(id)) return;
+  js = d.createElement(s); js.id = id;
+  js.src = &quot;//connect.facebook.net/en_US/sdk.js#xfbml=1&amp;amp;version=v2.0&quot;;
+  fjs.parentNode.insertBefore(js, fjs);
+}(document, &#39;script&#39;, &#39;facebook-jssdk&#39;));&lt;/script&gt;
+&lt;div class=&quot;fb-comments&quot; data-href=&quot;http://vallur.github.io/blog/Thread-interrupt&quot; data-numposts=&quot;5&quot; data-width=&quot;700&quot; data-colorscheme=&quot;light&quot;&gt;&lt;/div&gt;
+&lt;/div&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;!-- Twitter --&gt;
+&lt;script&gt;!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=&quot;//platform.twitter.com/widgets.js&quot;;fjs.parentNode.insertBefore(js,fjs);}}(document,&quot;script&quot;,&quot;twitter-wjs&quot;);&lt;/script&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;!-- Google + --&gt;
+&lt;script type=&quot;text/javascript&quot;&gt;
+  (function() {
+    var po = document.createElement(&#39;script&#39;); po.type = &#39;text/javascript&#39;; po.async = true;
+    po.src = &#39;https://apis.google.com/js/plusone.js&#39;;
+    var s = document.getElementsByTagName(&#39;script&#39;)[0]; s.parentNode.insertBefore(po, s);
+  })();
+&lt;/script&gt;&lt;/p&gt;
+</content>
+ </entry>
+ 
+ <entry>
+   <title>Thread Pool Executor</title>
+   <link href="http://vallur.github.com/blog/Thread-Pool-Executor"/>
+   <updated>2014-08-08T00:00:00-07:00</updated>
+   <id>http://vallur.github.com/blog/Thread-Pool-Executor</id>
+   <content type="html">&lt;p&gt;This time i am going to put the code first and try to explain later.&lt;/p&gt;
+
+&lt;script src=&quot;https://gist.github.com/vallur/35da0f1db47d63f3d050.js&quot;&gt;&lt;/script&gt;
+
+
+&lt;p&gt;This code is used to instantiate the thread pool and process the pool of threads using the ArrayBlockingQueue. I prefer to use the ArrayBlockingQueue vs LinkedBlockingQueue. Every time an object is removed from the LinkedBlockingQueue you will have to mind the GC. Since this is a thread pool and can have a lot of fast to average threads running in them that means you can have extremely large amount of push and pop operations done over a period of time which is constant pressure on GC and also incur locks. Hence the use of ArrayBlockingQueue with small number of size is better. In ArrayBlockingQueue allocation of new memory for each add is prevented.&lt;/p&gt;
+
+&lt;p&gt;If using ArrayBlockingQueue, make sure how fast your thread is and how much you want to keep in queue at a given time and set the size accordingly. Whether you use Linked or Array Blocking queue if your queue is full then the thread pool executer blocks the running thread until the queue gets space to fill again.&lt;/p&gt;
+
+&lt;p&gt;If you are concerned about processing only the most recent amount of objects in the queue you can implement the Queue interface with the circular buffer and get away with not incurring the cost of array resize as well. If using circular buffer make sure the indexer you use is synchronized. The best of the three would be ArrayBlockingQueue with the occasional cost incurred for resizing.&lt;/p&gt;
+
+&lt;p&gt;You need to be careful while setting the size of a queue. The thread pool will be blocked until it gets space to push new threads inside. If we want the thread pool to run for ever with infinite amount of items in queue don&#39;t set the size.&lt;/p&gt;
+
+&lt;script src=&quot;https://gist.github.com/vallur/90303a23ea2d98af08c3.js&quot;&gt;&lt;/script&gt;
+
+
+&lt;p&gt;The above code is a small snippet from my No-Sql solution which uses the thread to load all the files in parallel from disk based on their metadata. The metadata collection maintains the schema of all the tables or entities. The relationship between entities are part of the entities itself and not part of schema which makes querying and aggregation super easy.&lt;/p&gt;
+
+&lt;div class=&quot;row&quot;&gt;   
+    &lt;div class=&quot;span9 column&quot;&gt;
+            &lt;p class=&quot;pull-right&quot;&gt; &lt;a href=&quot;/blog/Security&quot; title=&quot;Previous Post: Handling security in Java&quot;&gt;&lt;i class=&quot;icon-chevron-left&quot;&gt;&lt;/i&gt;&lt;/a&gt;          &lt;a href=&quot;/blog/Thread-interrupt&quot; title=&quot;Next Post: How to interrupt a thread in java?&quot;&gt;&lt;i class=&quot;icon-chevron-right&quot;&gt;&lt;/i&gt;&lt;/a&gt;    &lt;/p&gt;  
+    &lt;/div&gt;
+&lt;/div&gt;
+
+
+
+
+&lt;p&gt;&lt;div class=&quot;row&quot;&gt; &lt;br/&gt;
+    &lt;div class=&quot;span9 columns&quot;&gt;  &lt;br/&gt;
+        &lt;h2&gt;Comments Section&lt;/h2&gt;
+        &lt;p&gt;Feel free to comment on the post but keep it clean and on topic.&lt;/p&gt;
+        &lt;div id=&quot;fb-root&quot;&gt;&lt;/div&gt;
+&lt;script&gt;(function(d, s, id) {
+  var js, fjs = d.getElementsByTagName(s)[0];
+  if (d.getElementById(id)) return;
+  js = d.createElement(s); js.id = id;
+  js.src = &quot;//connect.facebook.net/en_US/sdk.js#xfbml=1&amp;amp;version=v2.0&quot;;
+  fjs.parentNode.insertBefore(js, fjs);
+}(document, &#39;script&#39;, &#39;facebook-jssdk&#39;));&lt;/script&gt;
+&lt;div class=&quot;fb-comments&quot; data-href=&quot;http://vallur.github.io/blog/Thread-Pool-Executor&quot; data-numposts=&quot;5&quot; data-width=&quot;700&quot; data-colorscheme=&quot;light&quot;&gt;&lt;/div&gt;
+&lt;/div&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;!-- Twitter --&gt;
+&lt;script&gt;!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=&quot;//platform.twitter.com/widgets.js&quot;;fjs.parentNode.insertBefore(js,fjs);}}(document,&quot;script&quot;,&quot;twitter-wjs&quot;);&lt;/script&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;!-- Google + --&gt;
+&lt;script type=&quot;text/javascript&quot;&gt;
+  (function() {
+    var po = document.createElement(&#39;script&#39;); po.type = &#39;text/javascript&#39;; po.async = true;
+    po.src = &#39;https://apis.google.com/js/plusone.js&#39;;
+    var s = document.getElementsByTagName(&#39;script&#39;)[0]; s.parentNode.insertBefore(po, s);
+  })();
+&lt;/script&gt;&lt;/p&gt;
+</content>
+ </entry>
+ 
+ <entry>
+   <title>Handling security in Java</title>
+   <link href="http://vallur.github.com/blog/Security"/>
+   <updated>2014-08-08T00:00:00-07:00</updated>
+   <id>http://vallur.github.com/blog/Security</id>
+   <content type="html">&lt;p&gt;The first thing we need to worry about while developing a new software is handling security.
+There are many ways to solve this problem.&lt;/p&gt;
+
+&lt;h2&gt;Active Directory&lt;/h2&gt;
+
+&lt;p&gt;You can provide a unique encrypted client id for each client. The client and server will have to authenticate each other using the clientID and possibly using a secure channel using SSH or over SSL. In which case the server can accept the username and password and authenticate it towards LDAP using the code below&lt;/p&gt;
+
+&lt;script src=&quot;https://gist.github.com/vallur/0faa2623676185492e4b.js&quot;&gt;&lt;/script&gt;
+
+
+&lt;p&gt;If you are using a client API to communicate to server application. The client can access the logged on user name using the property to perform just authorization and not authentication by using the User Details from the LDAPAuthenticationProvider class above&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;System.getProperty(&quot;user.name&quot;)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Be mindful that the System.Property can be changed by the client java code so spoofing it from another java class is easy.&lt;/p&gt;
+
+&lt;h2&gt;Single Sign On&lt;/h2&gt;
+
+&lt;p&gt;It is not fair to close the topic without talking about Single sign on for security. It is difficult just as you might need to have the right permissions to create a key tab file for each server where your service is deployed. You can achieve this by using the &lt;a href=&quot;http://docs.oracle.com/javase/jndi/tutorial/ldap/security/gssapi.html&quot;&gt;GSS&lt;/a&gt; and &lt;a href=&quot;http://docs.oracle.com/javase/8/docs/technotes/guides/security/jaas/JAASRefGuide.html&quot;&gt;JAAS&lt;/a&gt; api.&lt;/p&gt;
+
+&lt;p&gt;We will be looking at Kerbros authentication with tomcat how-to.&lt;/p&gt;
+
+&lt;p&gt;Step 1 is the map a service principal name to a user account. A service principal name (SPN) is the name by which a client uniquely identifies an instance of a service.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;SPN format: &amp;lt;service class&amp;gt;/&amp;lt;host&amp;gt;:&amp;lt;port&amp;gt;/&amp;lt;service name&amp;gt;
+example:    Banyan/somehost.domain.com
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;In the SPN the port and service names are optional. Service SPN must be registered on the user or computer account that the service instance will use to log on. SPN registration is done by running with domain administrator privileges.&lt;/p&gt;
+
+&lt;p&gt;The setSPN command can be used to register a SPN for a service.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;setspn -a banyan/somehost.domain.com domainUser
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Now that we have registered the SPN we need to generate a key tab file that contains the private key for the service account which the server will use for authentication. Use the &lt;a href=&quot;http://technet.microsoft.com/en-us/library/cc753771.aspx&quot;&gt;ktpass&lt;/a&gt; app to do this.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;ktpass /out c:\tomcat.keytab /mapuser domainUser@SOMEDOMAIN.COM
+          /princ banyan/somehost.somedomain.coml@SOMEDOMAIN.COM
+          /pass password /kvno 0
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Now we will have to create the krb5.ini and the JAAS.conf for authentication and authorization&lt;/p&gt;
+
+&lt;p&gt;KRB5.ini&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;[libdefaults]
+default_realm = SOMEDOMAIN.COM
+default_keytab_name = FILE: c:\tomcat.keytab 
+default_tkt_enctypes = rc4-hmac,aes256-cts-hmac-sha1-96,aes128-cts-hmac-sha1-96
+default_tgs_enctypes = rc4-hmac,aes256-cts-hmac-sha1-96,aes128-cts-hmac-sha1-96
+forwardable=true
+
+[realms]
+SOMEDOMAIN.COM = {
+        kdc = somehost.somedomain.com:88
+}
+
+[domain_realm]
+somedomain.com= SOMEDOMAIN.COM
+.somedomain.com= SOMEDOMAIN.COM
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;JAAS.conf file
+```
+com.sun.security.jgss.krb5.initiate {
+    com.sun.security.auth.module.Krb5LoginModule required
+    doNotPrompt=true
+    principal=&quot;banyan/somehost.somedomain.coml@SOMEDOMAIN.COM&quot;
+    useKeyTab=true
+    keyTab=&quot; c:\tomcat.keytab&quot;
+    storeKey=true;
+};&lt;/p&gt;
+
+&lt;p&gt;com.sun.security.jgss.krb5.accept {
+    com.sun.security.auth.module.Krb5LoginModule required
+    doNotPrompt=true
+    principal=&quot;banyan/somehost.somedomain.coml@SOMEDOMAIN.COM&quot;
+    useKeyTab=true
+    keyTab=&quot; c:\tomcat.keytab&quot;
+    storeKey=true;
+};
+```&lt;/p&gt;
+
+&lt;p&gt;The krb5.conf location can be set by setting the property &lt;code&gt;java.security.krb5.conf&lt;/code&gt;.
+The JAAS.conf location can be set by setting the property &lt;code&gt;java.security.auth.login.config&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;Now for the final part we need to change the server.xml and set the authentication valve.&lt;/p&gt;
+
+&lt;p&gt;Add the below setting to the server.xml file as part of the Host node&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;&amp;lt;valve className=&quot;org.apache.catalina.authenticator.SpnegoAuthenticator&quot; loginConfigName=&quot;com.sun.security.jgss.krb5.accept&quot; /&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;By setting the above credentials tomcat will be able to authenticate using the browser using single sign on. Now we will be able to access the remote user from the servlet or asp using the code below.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;request.getRemoteUser();
+request.getUserPrincipal().getName();
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;This will work in both windows as well as linux.&lt;/p&gt;
+
+&lt;h2&gt;Secure Shell&lt;/h2&gt;
+
+&lt;p&gt;You can look @ &lt;a href=&quot;http://en.wikipedia.org/wiki/Secure_Shell&quot;&gt;wikipedea&lt;/a&gt; about SSH and making secure connections between two servers. This is only a partial solution where you say who ever has access to the client/web server that communicates with your server has access to the data. The client still might need to do authentication and authorization. This is also a hammer as you will be incurring the cost of encryption and decryption on all the data communication between the servers.&lt;/p&gt;
+
+&lt;p&gt;Handle security in a custom way and this will not be single sign on and the data will be kind of secure  as long as no one gets hold of the client code and server code.&lt;/p&gt;
+
+&lt;div class=&quot;row&quot;&gt;   
+    &lt;div class=&quot;span9 column&quot;&gt;
+            &lt;p class=&quot;pull-right&quot;&gt; &lt;a href=&quot;/blog/Gc&quot; title=&quot;Previous Post: JVM options for performance and GC&quot;&gt;&lt;i class=&quot;icon-chevron-left&quot;&gt;&lt;/i&gt;&lt;/a&gt;           &lt;a href=&quot;/blog/Thread-Pool-Executor&quot; title=&quot;Next Post: Thread Pool Executor&quot;&gt;&lt;i class=&quot;icon-chevron-right&quot;&gt;&lt;/i&gt;&lt;/a&gt;      &lt;/p&gt;  
+    &lt;/div&gt;
+&lt;/div&gt;
+
+
+
+
+&lt;p&gt;&lt;div class=&quot;row&quot;&gt; &lt;br/&gt;
+    &lt;div class=&quot;span9 columns&quot;&gt;  &lt;br/&gt;
+        &lt;h2&gt;Comments Section&lt;/h2&gt;
+        &lt;p&gt;Feel free to comment on the post but keep it clean and on topic.&lt;/p&gt;
+        &lt;div id=&quot;fb-root&quot;&gt;&lt;/div&gt;
+&lt;script&gt;(function(d, s, id) {
+  var js, fjs = d.getElementsByTagName(s)[0];
+  if (d.getElementById(id)) return;
+  js = d.createElement(s); js.id = id;
+  js.src = &quot;//connect.facebook.net/en_US/sdk.js#xfbml=1&amp;amp;version=v2.0&quot;;
+  fjs.parentNode.insertBefore(js, fjs);
+}(document, &#39;script&#39;, &#39;facebook-jssdk&#39;));&lt;/script&gt;
+&lt;div class=&quot;fb-comments&quot; data-href=&quot;http://vallur.github.io/blog/Security&quot; data-numposts=&quot;5&quot; data-width=&quot;700&quot; data-colorscheme=&quot;light&quot;&gt;&lt;/div&gt;
+&lt;/div&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;!-- Twitter --&gt;
+&lt;script&gt;!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=&quot;//platform.twitter.com/widgets.js&quot;;fjs.parentNode.insertBefore(js,fjs);}}(document,&quot;script&quot;,&quot;twitter-wjs&quot;);&lt;/script&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;!-- Google + --&gt;
+&lt;script type=&quot;text/javascript&quot;&gt;
+  (function() {
+    var po = document.createElement(&#39;script&#39;); po.type = &#39;text/javascript&#39;; po.async = true;
+    po.src = &#39;https://apis.google.com/js/plusone.js&#39;;
+    var s = document.getElementsByTagName(&#39;script&#39;)[0]; s.parentNode.insertBefore(po, s);
+  })();
+&lt;/script&gt;&lt;/p&gt;
+</content>
+ </entry>
+ 
+ <entry>
+   <title>JVM options for performance and GC</title>
+   <link href="http://vallur.github.com/blog/Gc"/>
+   <updated>2014-08-08T00:00:00-07:00</updated>
+   <id>http://vallur.github.com/blog/Gc</id>
+   <content type="html">&lt;p&gt;In this blog i will be talking about some of the JVM options that we can use for tuning performance and doing memory management.&lt;/p&gt;
+
+&lt;p&gt;When we want to set the memory ceiling for my java code i use the -Xms4m -Xmx4m option.  This says that the minimum and maximum memory used for my app is 4 MB.&lt;/p&gt;
+
+&lt;script src=&quot;https://gist.github.com/vallur/0440b65454d7b3f1fdd2.js&quot;&gt;&lt;/script&gt;
+
+
+&lt;p&gt;Code for SimpleThreadPool can be found here.&lt;/p&gt;
+
+&lt;p&gt;I wrote this code to see the behavior of GC with different options. With just this option &lt;code&gt;-Xms4m -Xmx4m&lt;/code&gt; the memory foot print becomes like the below&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/img/posts/jvm1.png&quot; alt=&quot;The Bad&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;with the option -XX:+UseConcMarkSweepGC option the image becomes like&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/img/posts/jvm4.png&quot; alt=&quot;The Good&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;The difference is mostly like asking the kids to cleanup the mess at the end of the day vs immediately when they make it. The later is better while writing enterprise level applications to avoid stop the world garbage collectors. It is also preferable to write code that gives less garbage wherever it is possible topic for another time.&lt;/p&gt;
+
+&lt;p&gt;The effect on CPU and garbage without -XX:+UseConcMarkSweepGC is given below when we tweak the variable  &lt;code&gt;MEMORY_MIN_THRESHOLD=100;&lt;/code&gt; instead of 3 and  set the vm option to &lt;code&gt;-Xms4000m -Xmx4000m&lt;/code&gt;. Now I made the GC kicking and and spend more time in this case more than 37% of the CPU&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/img/posts/jvm3.png&quot; alt=&quot;The UGLY&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;The high CPU is due to the locks caused by &lt;code&gt;LinkedBlockingQueue&lt;/code&gt; trying to run the threads in a tight loop apart from the GC trying to free up memory. Don&#39;t do this in your code. and oh my god more than 90% CPU and the system is choking hard what do I do?.&lt;/p&gt;
+
+&lt;p&gt;I tried &lt;code&gt;-XX:+UseConcMarkSweepGC -XX:ConcGCThreads=4&lt;/code&gt; and ran the application again i got the below result&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/img/posts/jvm2.png&quot; alt=&quot;The UGLY&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;This is slightly better than the above but still bad due to the CPU spikes. The time on GC is less than 10% of CPU which is better than the previous result.&lt;/p&gt;
+
+&lt;p&gt;So i tried experimenting with  &lt;code&gt;-XX:+UseParallelGC -XX:MaxGCPauseMillis=1 -XX:ParallelGCThreads=4&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/img/posts/jvm5.png&quot; alt=&quot;The UGLY&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;The GC is happening more frequently and the CPU spent on GC is less than 10% and total CPU spike is less than 50 % much better picture.&lt;/p&gt;
+
+&lt;p&gt;While write an application , releasing memory whenever done is a good practice and allocating them incrementally as need basis  -XX:+UseConcMarkSweepGC option will be our friend still may need to play around with -XX:ConcGCThreads=4 based on need and number of threads used.&lt;/p&gt;
+
+&lt;p&gt;If we are hogging up memory and releasing them like in the code above when the memory is almost full we have the option to use &lt;code&gt;-XX:+UseParallelGC -XX:MaxGCPauseMillis=1 -XX:ParallelGCThreads=4&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;There are other JVM options to tune like -XX:ThreadStackSize which can be tuned if we are writing a lot of recursive operations in our code. The full list of JVM options can be found &lt;a href=&quot;http://www.oracle.com/technetwork/java/javase/tech/vmoptions-jsp-140102.html&quot;&gt;here&lt;/a&gt;. There are other options to fine tune the young and old generation memory space.&lt;/p&gt;
+
+&lt;p&gt;If we are writing code that requires more memory than the system actually has. It is always possible to allocate more during startup with the option &lt;code&gt;-Xms53000m -Xmx53000m&lt;/code&gt;. I had tried to allocate close to 53GB on my MAC. It tries to allocate as much as possible and for the rest the OS does page faults and loads the items into memory opportunistically which would hinder performance. This helps in testing my long running code from home on my laptop.&lt;/p&gt;
+
+&lt;p&gt;As a general rule of thumb i tend to allocate 60% of the server memory for my server side code JVM and use 70%-80% of the memory that is allotted to the JVM to avoid things like stop the world GC.&lt;/p&gt;
+
+&lt;p&gt;There are other programming practices which can be done to avoid garbage and improve performance which we will cover separately.&lt;/p&gt;
+
+&lt;p&gt;The code sample given above is for learning the behavior of JVM only and should not be used as a defacto coding standard.&lt;/p&gt;
+
+&lt;div class=&quot;row&quot;&gt;   
+    &lt;div class=&quot;span9 column&quot;&gt;
+            &lt;p class=&quot;pull-right&quot;&gt; &lt;a href=&quot;/blog/Frequency-sum-average-mapreduce&quot; title=&quot;Previous Post: Frequency, Sum, Average and Map Reduce with java 8&quot;&gt;&lt;i class=&quot;icon-chevron-left&quot;&gt;&lt;/i&gt;&lt;/a&gt;          &lt;a href=&quot;/blog/Security&quot; title=&quot;Next Post: Handling security in Java&quot;&gt;&lt;i class=&quot;icon-chevron-right&quot;&gt;&lt;/i&gt;&lt;/a&gt;     &lt;/p&gt;  
+    &lt;/div&gt;
+&lt;/div&gt;
+
+
+
+
+&lt;p&gt;&lt;div class=&quot;row&quot;&gt; &lt;br/&gt;
+    &lt;div class=&quot;span9 columns&quot;&gt;  &lt;br/&gt;
+        &lt;h2&gt;Comments Section&lt;/h2&gt;
+        &lt;p&gt;Feel free to comment on the post but keep it clean and on topic.&lt;/p&gt;
+        &lt;div id=&quot;fb-root&quot;&gt;&lt;/div&gt;
+&lt;script&gt;(function(d, s, id) {
+  var js, fjs = d.getElementsByTagName(s)[0];
+  if (d.getElementById(id)) return;
+  js = d.createElement(s); js.id = id;
+  js.src = &quot;//connect.facebook.net/en_US/sdk.js#xfbml=1&amp;amp;version=v2.0&quot;;
+  fjs.parentNode.insertBefore(js, fjs);
+}(document, &#39;script&#39;, &#39;facebook-jssdk&#39;));&lt;/script&gt;
+&lt;div class=&quot;fb-comments&quot; data-href=&quot;http://vallur.github.io/blog/Gc&quot; data-numposts=&quot;5&quot; data-width=&quot;700&quot; data-colorscheme=&quot;light&quot;&gt;&lt;/div&gt;
+&lt;/div&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;!-- Twitter --&gt;
+&lt;script&gt;!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=&quot;//platform.twitter.com/widgets.js&quot;;fjs.parentNode.insertBefore(js,fjs);}}(document,&quot;script&quot;,&quot;twitter-wjs&quot;);&lt;/script&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;!-- Google + --&gt;
+&lt;script type=&quot;text/javascript&quot;&gt;
+  (function() {
+    var po = document.createElement(&#39;script&#39;); po.type = &#39;text/javascript&#39;; po.async = true;
+    po.src = &#39;https://apis.google.com/js/plusone.js&#39;;
+    var s = document.getElementsByTagName(&#39;script&#39;)[0]; s.parentNode.insertBefore(po, s);
+  })();
+&lt;/script&gt;&lt;/p&gt;
+</content>
+ </entry>
+ 
+ <entry>
+   <title>Frequency, Sum, Average and Map Reduce with java 8</title>
+   <link href="http://vallur.github.com/blog/Frequency-sum-average-mapreduce"/>
+   <updated>2014-08-08T00:00:00-07:00</updated>
+   <id>http://vallur.github.com/blog/Frequency-sum-average-mapreduce</id>
+   <content type="html">&lt;h2&gt;Problem&lt;/h2&gt;
+
+&lt;p&gt;How can we do group by and get the count of occurrences of objects in a list. We want to do that based on certain attributes only.&lt;/p&gt;
+
+&lt;p&gt;The Object we will be using for holding the value will be Product&lt;/p&gt;
+
+&lt;script src=&quot;https://gist.github.com/vallur/666480f53ee40dfa1745.js&quot;&gt;&lt;/script&gt;
+
+
+&lt;p&gt;We will be using an ArrayList to hold a collection of products. I would like to know the number of products being sold for each currency.&lt;/p&gt;
+
+&lt;h2&gt;Solution&lt;/h2&gt;
+
+&lt;script src=&quot;https://gist.github.com/vallur/30fa4bb238d42014a7b3.js&quot;&gt;&lt;/script&gt;
+
+
+&lt;p&gt;If you want to do the same code using stream in java 8 the below is the way to go. But good luck debugging through this. The map reduce like api&#39;s introduced in java 8 are really cool but is something i have been using in C#.net since 3.5. Both have the same problem.&lt;/p&gt;
+
+&lt;script src=&quot;https://gist.github.com/vallur/1493f88b5c8caf2c27cb.js&quot;&gt;&lt;/script&gt;
+
+
+&lt;p&gt;comparing performance of both the above implementation the stream implementation is slightly lower in performance when the list size grows higher but can be easily parallelized.&lt;/p&gt;
+
+&lt;p&gt;If you want to get a sum of all the product quantity grouped by currency then the below code will work&lt;/p&gt;
+
+&lt;script src=&quot;https://gist.github.com/vallur/d38b56f4ea6c78645ee9.js&quot;&gt;&lt;/script&gt;
+
+
+&lt;p&gt;If you want to get the average of the product quantity based on Currency the below code will do.&lt;/p&gt;
+
+&lt;script src=&quot;https://gist.github.com/vallur/aa048084971f637d646f.js&quot;&gt;&lt;/script&gt;
+
+
+&lt;p&gt;Now how can we get the list filtered based on currency &quot;USD&quot;.&lt;/p&gt;
+
+&lt;script src=&quot;https://gist.github.com/vallur/9ce7ee9e9bca9b492723.js&quot;&gt;&lt;/script&gt;
+
+
+&lt;p&gt;The map reduce based aggregation operations in java is very powerful. Until now we have only seen the simplicity at which we can write map reduce like operations using java 8 this is all pretty code to me and saving the number of lines to write. Performance is the same either you use the Aggregation API or do it your self using plain HashMap or Arrays.&lt;/p&gt;
+
+&lt;p&gt;When we can do any of the above operations in parallel using all the available CPU&#39;s for a single map-reduce then the power shows up. Let us take the avg example and try to do it with parallel stream&lt;/p&gt;
+
+&lt;script src=&quot;https://gist.github.com/vallur/f5d1d5aa0c4fcad2bb9f.js&quot;&gt;&lt;/script&gt;
+
+
+&lt;p&gt;Yup plain and simple just adding parallelStream gives the solution. Please drop a comment if you like this blog.&lt;/p&gt;
+
+&lt;div class=&quot;row&quot;&gt;   
+    &lt;div class=&quot;span9 column&quot;&gt;
+            &lt;p class=&quot;pull-right&quot;&gt; &lt;a href=&quot;/blog/Circular-Buffer&quot; title=&quot;Previous Post: Circular Buffer using arrays in java&quot;&gt;&lt;i class=&quot;icon-chevron-left&quot;&gt;&lt;/i&gt;&lt;/a&gt;            &lt;a href=&quot;/blog/Gc&quot; title=&quot;Next Post: JVM options for performance and GC&quot;&gt;&lt;i class=&quot;icon-chevron-right&quot;&gt;&lt;/i&gt;&lt;/a&gt;      &lt;/p&gt;  
+    &lt;/div&gt;
+&lt;/div&gt;
+
+
+
+
+&lt;p&gt;&lt;div class=&quot;row&quot;&gt; &lt;br/&gt;
+    &lt;div class=&quot;span9 columns&quot;&gt;  &lt;br/&gt;
+        &lt;h2&gt;Comments Section&lt;/h2&gt;
+        &lt;p&gt;Feel free to comment on the post but keep it clean and on topic.&lt;/p&gt;
+        &lt;div id=&quot;fb-root&quot;&gt;&lt;/div&gt;
+&lt;script&gt;(function(d, s, id) {
+  var js, fjs = d.getElementsByTagName(s)[0];
+  if (d.getElementById(id)) return;
+  js = d.createElement(s); js.id = id;
+  js.src = &quot;//connect.facebook.net/en_US/sdk.js#xfbml=1&amp;amp;version=v2.0&quot;;
+  fjs.parentNode.insertBefore(js, fjs);
+}(document, &#39;script&#39;, &#39;facebook-jssdk&#39;));&lt;/script&gt;
+&lt;div class=&quot;fb-comments&quot; data-href=&quot;http://vallur.github.io/blog/Frequency-sum-average-mapreduce&quot; data-numposts=&quot;5&quot; data-width=&quot;700&quot; data-colorscheme=&quot;light&quot;&gt;&lt;/div&gt;
+&lt;/div&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;!-- Twitter --&gt;
+&lt;script&gt;!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=&quot;//platform.twitter.com/widgets.js&quot;;fjs.parentNode.insertBefore(js,fjs);}}(document,&quot;script&quot;,&quot;twitter-wjs&quot;);&lt;/script&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;!-- Google + --&gt;
+&lt;script type=&quot;text/javascript&quot;&gt;
+  (function() {
+    var po = document.createElement(&#39;script&#39;); po.type = &#39;text/javascript&#39;; po.async = true;
+    po.src = &#39;https://apis.google.com/js/plusone.js&#39;;
+    var s = document.getElementsByTagName(&#39;script&#39;)[0]; s.parentNode.insertBefore(po, s);
+  })();
+&lt;/script&gt;&lt;/p&gt;
+</content>
+ </entry>
+ 
+ <entry>
+   <title>Circular Buffer using arrays in java</title>
+   <link href="http://vallur.github.com/blog/Circular-Buffer"/>
+   <updated>2014-08-07T00:00:00-07:00</updated>
+   <id>http://vallur.github.com/blog/Circular-Buffer</id>
+   <content type="html">&lt;p&gt;I have seen many implementations online for implementing Circular Buffer but haven&#39;t found a clean one. To me this is a crucial functionality and has a lot of its uses in software. Hence here goes my code.&lt;/p&gt;
+
+&lt;script src=&quot;https://gist.github.com/vallur/cfe0f9fd94f99fe8c63e.js&quot;&gt;&lt;/script&gt;
+
+
+&lt;p&gt;Now you had seen the code here you can see where this can be used. The most commonly used place is logging where the system wants to allocate only certain amount of memory or maintain one hour worth of log data. If your system supports 1000,000 log entries per minute then you would want your array size to support 60 mins worth of data to be 60,000,000. If we don&#39;t use a fixed buffer that can be used continuously for a short span of time we would be putting lot of stress on JVM to allocate and free memory. You will be seeing me using this approach in coding for various other types through the blog.&lt;/p&gt;
+
+&lt;p&gt;60,000,000 million sounds like a lot and it is for a small and average system. It is a good idea to preallocate the sizes than to incur the cost of resizing arrays on the fly makes planning memory and H/W for high performant systems easier and less stress on garbage collector.&lt;/p&gt;
+
+&lt;p&gt;If you like my blog drop a line and I am always happy to learn and share more.&lt;/p&gt;
+
+&lt;div class=&quot;row&quot;&gt;   
+    &lt;div class=&quot;span9 column&quot;&gt;
+            &lt;p class=&quot;pull-right&quot;&gt; &lt;a href=&quot;/blog/Async-Journaling&quot; title=&quot;Previous Post: How to do async journaling from your server code&quot;&gt;&lt;i class=&quot;icon-chevron-left&quot;&gt;&lt;/i&gt;&lt;/a&gt;           &lt;a href=&quot;/blog/Frequency-sum-average-mapreduce&quot; title=&quot;Next Post: Frequency, Sum, Average and Map Reduce with java 8&quot;&gt;&lt;i class=&quot;icon-chevron-right&quot;&gt;&lt;/i&gt;&lt;/a&gt;     &lt;/p&gt;  
+    &lt;/div&gt;
+&lt;/div&gt;
+
+
+&lt;div class=&quot;row&quot;&gt;   
+    &lt;div id=&quot;fb-root&quot;&gt;&lt;/div&gt;
+&lt;script&gt;(function(d, s, id) {
+  var js, fjs = d.getElementsByTagName(s)[0];
+  if (d.getElementById(id)) return;
+  js = d.createElement(s); js.id = id;
+  js.src = &quot;//connect.facebook.net/en_US/sdk.js#xfbml=1&amp;version=v2.0&quot;;
+  fjs.parentNode.insertBefore(js, fjs);
+}(document, &#39;script&#39;, &#39;facebook-jssdk&#39;));&lt;/script&gt;
+&lt;div class=&quot;fb-comments&quot; data-href=&quot;http://vallur.github.io/blog/Circular-Buffer&quot; data-numposts=&quot;5&quot; data-width=&quot;700&quot; data-colorscheme=&quot;light&quot;&gt;&lt;/div&gt;
+&lt;/div&gt;
+
+
+
+
+&lt;!-- Twitter --&gt;
+
+
+&lt;script&gt;!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=&quot;//platform.twitter.com/widgets.js&quot;;fjs.parentNode.insertBefore(js,fjs);}}(document,&quot;script&quot;,&quot;twitter-wjs&quot;);&lt;/script&gt;
+
+
+
+
+&lt;!-- Google + --&gt;
+
+
+&lt;script type=&quot;text/javascript&quot;&gt;
+  (function() {
+    var po = document.createElement(&#39;script&#39;); po.type = &#39;text/javascript&#39;; po.async = true;
+    po.src = &#39;https://apis.google.com/js/plusone.js&#39;;
+    var s = document.getElementsByTagName(&#39;script&#39;)[0]; s.parentNode.insertBefore(po, s);
+  })();
+&lt;/script&gt;
+
+
+&lt;!--Google analytics--&gt;
+
+
+&lt;script&gt;
+  (function(i,s,o,g,r,a,m){i[&#39;GoogleAnalyticsObject&#39;]=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,&#39;script&#39;,&#39;//www.google-analytics.com/analytics.js&#39;,&#39;ga&#39;);
+
+  ga(&#39;create&#39;, &#39;UA-53607051-1&#39;, &#39;auto&#39;);
+  ga(&#39;send&#39;, &#39;pageview&#39;);
+
+&lt;/script&gt;
+
+</content>
+ </entry>
+ 
+ <entry>
+   <title>How to do async journaling from your server code</title>
+   <link href="http://vallur.github.com/blog/Async-Journaling"/>
+   <updated>2014-08-07T00:00:00-07:00</updated>
+   <id>http://vallur.github.com/blog/Async-Journaling</id>
+   <content type="html">&lt;h2&gt;Problem&lt;/h2&gt;
+
+&lt;p&gt;I want to write journal entries or log entries of transactions to disk. I don&#39;t want the system to slow down due to logging. I want to have a rolling log and should be able to recover when some thing wrong happens. Recovery part is not covered in here.&lt;/p&gt;
+
+&lt;h2&gt;Solution.&lt;/h2&gt;
+
+&lt;p&gt;Simply use a customized version of log4j which itself supports async logging or use flume. While you choose any of the above technologies please remember the footprint it has for your system and what they are designed for.&lt;/p&gt;
+
+&lt;p&gt;You can also use a slight variation of the code i outline below. The below code creates a rolling file with a time stamp. The file has kind of a fixed size of 360 MB, it uses super fast compression (LZF Compress). The writes are written to disk using LinkedBlockingQueue first written to a queue and then later written to memory mapped file in disk. The memory mapped files are outside of JVM heap memory so the file contents might not be held in memory during the time of the writes.&lt;/p&gt;
+
+&lt;p&gt;We can use either circular buffer or LinkedBlockingQueue both will give performance in o(1). Let us see the advantages and disadvantages of using circular buffer vs LinkedBlokingQueue.&lt;/p&gt;
+
+&lt;h2&gt;&lt;u&gt;Circular buffer&lt;/u&gt;&lt;/h2&gt;
+
+&lt;h2&gt;Advantages&lt;/h2&gt;
+
+&lt;p&gt;No time taken for resizing or new memory allocation. Hence no garbage. This is a huge advantage as you know that the GC won&#39;t kick-in to claim any of the unused ones from this.&lt;/p&gt;
+
+&lt;p&gt;Since we do not resize or add new entries to a fixed buffer there will be no locks. Locks are made only on the part where we increment the index.&lt;/p&gt;
+
+&lt;h2&gt;Disadvantage&lt;/h2&gt;
+
+&lt;p&gt;This is a circular buffer hence it has the potential to overwrite existing entires. If we do not let it grow over its size we do not have the concern of overwriting the existing ones.&lt;/p&gt;
+
+&lt;p&gt;You will have to allocate a certain amount of static size upfront for this one.&lt;/p&gt;
+
+&lt;h2&gt;&lt;u&gt;LinkedBlockingQueue&lt;/u&gt;&lt;/h2&gt;
+
+&lt;h2&gt;Advantages&lt;/h2&gt;
+
+&lt;ul&gt;
+&lt;li&gt;In normal cases this might not reach the size that is considered the worst case.&lt;/li&gt;
+&lt;li&gt;It won&#39;t overwrite existing entries.&lt;/li&gt;
+&lt;/ul&gt;
+
+
+&lt;h2&gt;Disadvantages&lt;/h2&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Can cause Memory issues.&lt;/li&gt;
+&lt;li&gt;This will incur memory allocation for each poll / put entry. Hence there will be a lot of additional work for the GC.&lt;/li&gt;
+&lt;li&gt;This will incur a lock since this is a LinkedBlockingQueue on both push as well as pop operations.&lt;/li&gt;
+&lt;li&gt;A lock will be made on the thread when the queue is full for inserting new elements.&lt;/li&gt;
+&lt;/ul&gt;
+
+
+&lt;script src=&quot;https://gist.github.com/vallur/1f4a46f59e312bea8642.js&quot;&gt;&lt;/script&gt;
+
+
+&lt;p&gt;Since the journal entries are compressed it probably would support 10 hours worth of journal entries in 1 file. This code might potentially chunck the file and write the full snapshot to disk every 10 hours making the system extremely efficient and reducing the disk lag (latency on writing to disk).&lt;/p&gt;
+
+&lt;h2&gt;Little bit of bragging here.&lt;/h2&gt;
+
+&lt;p&gt; The No sql system i wrote uses this logic for journaling,Where it writes the full snapshot to disk when ever the 360 MB mark reaches on journaling. Once the full snapshot is made the Journal entries are used only to help outdated masters come back to life. Transferring a 360 MB or less file between masters is way easier than incurring the multiple reads on the system. When ever a different server needs a new snapshot of information the system is designed to give it the snapshot data and journal to bring the new server to life. It takes my system 10 to 16 seconds to load the Snapshot and journal data from disk in my 3 year old MAC laptop. It takes the system 25 seconds to write the snapshot.&lt;/p&gt;
+
+&lt;p&gt;Need to make more testing to fine tune, will update if i find any issues.&lt;/p&gt;
+
+&lt;p&gt;If you like my blog drop a line and I am always happy to learn and share more.&lt;/p&gt;
+
+&lt;div class=&quot;row&quot;&gt;   
+    &lt;div class=&quot;span9 column&quot;&gt;
+            &lt;p class=&quot;pull-right&quot;&gt;      &lt;a href=&quot;/blog/Circular-Buffer&quot; title=&quot;Next Post: Circular Buffer using arrays in java&quot;&gt;&lt;i class=&quot;icon-chevron-right&quot;&gt;&lt;/i&gt;&lt;/a&gt;   &lt;/p&gt;  
+    &lt;/div&gt;
+&lt;/div&gt;
+
+
+
+
+&lt;div class=&quot;row&quot;&gt;   
+    &lt;div id=&quot;fb-root&quot;&gt;&lt;/div&gt;
+&lt;script&gt;(function(d, s, id) {
+  var js, fjs = d.getElementsByTagName(s)[0];
+  if (d.getElementById(id)) return;
+  js = d.createElement(s); js.id = id;
+  js.src = &quot;//connect.facebook.net/en_US/sdk.js#xfbml=1&amp;version=v2.0&quot;;
+  fjs.parentNode.insertBefore(js, fjs);
+}(document, &#39;script&#39;, &#39;facebook-jssdk&#39;));&lt;/script&gt;
+&lt;div class=&quot;fb-comments&quot; data-href=&quot;http://vallur.github.io/blog/Async-Journaling&quot; data-numposts=&quot;5&quot; data-width=&quot;700&quot; data-colorscheme=&quot;light&quot;&gt;&lt;/div&gt;
+&lt;/div&gt;
+
+
+
+
+&lt;!-- Twitter --&gt;
+
+
+&lt;script&gt;!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=&quot;//platform.twitter.com/widgets.js&quot;;fjs.parentNode.insertBefore(js,fjs);}}(document,&quot;script&quot;,&quot;twitter-wjs&quot;);&lt;/script&gt;
+
+
+
+
+&lt;!-- Google + --&gt;
+
+
+&lt;script type=&quot;text/javascript&quot;&gt;
+  (function() {
+    var po = document.createElement(&#39;script&#39;); po.type = &#39;text/javascript&#39;; po.async = true;
+    po.src = &#39;https://apis.google.com/js/plusone.js&#39;;
+    var s = document.getElementsByTagName(&#39;script&#39;)[0]; s.parentNode.insertBefore(po, s);
+  })();
+&lt;/script&gt;
+
+</content>
+ </entry>
+ 
+ 
+</feed>

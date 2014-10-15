@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html class="fuelux" lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Serialization - Continues....</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <link href="http://fuelcdn.com/fuelux/2.2/css/fuelux.css" rel="stylesheet" /> 
+	<link href="http://fuelcdn.com/fuelux/2.2/css/fuelux-responsive.css" rel="stylesheet" />
+	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js" type="text/javascript"></script>
+	<script src="http://fuelcdn.com/fuelux/2.2/loader.min.js" type="text/javascript"></script>
+    <link href="/css/docs.css" rel="stylesheet">
+    <link href="/js/google-code-prettify/prettify.css" rel="stylesheet">	
+	<link rel="shortcut icon" href="/favicon.ico">    
+  </head>
+  <body data-spy="scroll" data-target=".subnav" data-offset="50">
+	<div class="navbar navbar-fixed-top">
+  <div class="navbar-inner">
+	<div class="container">
+	  <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+		<span class="icon-bar"></span>
+		<span class="icon-bar"></span>
+		<span class="icon-bar"></span>
+	  </a>
+	  <a class="brand" href="http://Vallur.github.com">Blog Dedicated for Banyan. Under Construction!</a>
+	  <div class="nav-collapse">
+		<ul class="nav">		  
+		  <li class="">
+			<a href="http://vallur.github.com"><i class="icon-home"></i> Home</a>
+		  </li>
+		  <li class="dropdown">
+			<a href="#" class="dropdown-toggle" data-toggle="dropdown"><i class="icon-comment"></i> Social <b class="caret"></b></a>
+				<ul class="dropdown-menu">										
+					<li class=""><a href="http://github.com/banyan" rel="tooltip" title="Go to github.com/erjjones" target="_blank">GitHub</a></li>
+					<li class=""><a href="http://www.linkedin.com/pub/vallur-narasimhan/5/219/570/" rel="tooltip" title="Go to LinkedIn profile" target="_blank">LinkedIn</a></li>										
+				</ul>
+			 </li>
+		</ul>		
+	  </div>
+	</div>
+  </div>
+</div>
+  
+	<div class="container">	
+		<div class="marketing">
+		<div class="content">    
+	<script src="https://apis.google.com/js/platform.js" async defer></script>
+<script src="//platform.linkedin.com/in.js" type="text/javascript">lang: en_US</script>
+<div id="fb-root"></div>
+<script>(function(d, s, id) {
+  var js, fjs = d.getElementsByTagName(s)[0];
+  if (d.getElementById(id)) return;
+  js = d.createElement(s); js.id = id;
+  js.src = "//connect.facebook.net/en_US/sdk.js#xfbml=1&version=v2.0";
+  fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));</script>
+<script type="text/javascript">
+		/* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+		var disqus_shortname = 'vallur'; // required: replace example with your forum shortname
+		var disqus_identifier = '/blog/Serialization-continues';
+		var disqus_url = 'http://vallur.github.com/blog/Serialization-continues';
+
+		/* * * DON'T EDIT BELOW THIS LINE * * */
+		(function () {
+			var s = document.createElement('script'); s.async = true;
+			s.type = 'text/javascript';
+			s.src = 'http://' + disqus_shortname + '.disqus.com/count.js';
+			(document.getElementsByTagName('HEAD')[0] || document.getElementsByTagName('BODY')[0]).appendChild(s);
+		}());
+	</script>
+<br/>
+		<h1>Serialization - Continues....</h1>
+<br/>
+<!--	<div class="span3 column">-->
+		<strong>August 13, 2014 <small>.  <a href="http://vallur.github.com/blog/Serialization-continues#disqus_thread" data-disqus-identifier="/blog/Serialization-continues">Comments</a></small></strong>
+		<br/><small>Tags:  <a href="/tags/java" title="View posts tagged with &quot;java&quot;"><u>java</u></a>     <a href="/tags/serialization" title="View posts tagged with &quot;serialization&quot;"><u>serialization</u></a>     <a href="/tags/externalize" title="View posts tagged with &quot;externalize&quot;"><u>externalize</u></a>    </small>
+<!--	</div>		-->
+<!--	<div class="span6 column">-->
+		<p class="pull-right"> <a href="/blog/Serialization" title="Previous Post: Serialization - What to choose?."><i class="icon-chevron-left"></i></a> 	    	<a href="/blog/RightAPIToChooseForCall" title="Next Post: Rest Over JSON or plain old sockets for communication"><i class="icon-chevron-right"></i></a> 	 </p>  
+<!--	</div>-->
+</div>
+<!--<div class="row">-->&nbsp;<div class="g-plusone"></div><script type="IN/Share" data-counter="right"></script>&nbsp;<div class="fb-like" data-href="http://vallur.github.com/blog/Serialization-continues" data-layout="button_count" data-action="like" data-show-faces="false" data-share="false"></div>&nbsp;<iframe class="github-btn" src="http://ghbtns.com/github-btn.html?user=vallur&repo=vallur.github.com&type=watch&count=true" allowtransparency="true" frameborder="0" scrolling="0" width="80px" height="20px"></iframe>&nbsp;<iframe class="github-btn" src="http://ghbtns.com/github-btn.html?user=vallur&repo=vallur.github.com&type=fork&count=true" allowtransparency="true" frameborder="0" scrolling="0" width="98px" height="20px"></iframe>
+<!--</div>-->
+<br/><hr>
+
+    <p>As a continuation of the previous serialization blogs I am planning to bore further on this topic. I like protobuf a lot and also I like FST serialization on the aspects that it can compact the serialized bytes in o(1). Due to the compaction of size between protobuf and FST I would say FST would win if we look at the end to end pipe line.</p>
+
+<p>After learning the best from both these ideas i planned to write my own API and see if i can do better. What is that i have to offer that is not already in one of these. I am planning to add the below features on top of FST framework.</p>
+
+<ol>
+<li><p>The use of ByteBuffer for allocating memory for the objects to be serialized.
+ This is particularly important as this widens the range for serialization to use</p>
+
+<p> DirectByteBuffer - though slow right now might become super fast sooner as OS handles the memory allocation for later. Today it is slow as the JVM controls the availability of the buffer memory for security and exclusive access.</p>
+
+<p> Array backed byte buffer - This is the normal bytebuffer. This is the fastest byte buffer implementation to use.</p>
+
+<p> Memory mapped byte buffer - This is the coolest feature for writing the serialized data asynchronously to disk.</p></li>
+<li><p>Pre-calculating the size of a object, so we donot incur the cost of array resizing on the fly. We would incur the array resizing cost and GC cost if we use FST or ByteArrayOutputStream. It is possible to use same bytebuffer to serialize multiple objects that are part of the same connection as long as the size matches.</p></li>
+<li><p>Introduction of LazyString. This is a boxed type of string to store the bytes of string and do the conversion of string to bytes and vice versa only when it is necessary.</p></li>
+<li><p>Only works with known types primitive types and their respective boxed objects, List, Map and some more objects specific to banyan. This looks custom built for banyan but is very easy to develop.</p></li>
+<li><p>Automatically provides compression and the compression acheived is better than LZ4 compression on top of java serialized bytes.</p></li>
+</ol>
+
+
+<div style="height:330px;overflow-y:scroll">
+<script src="https://gist.github.com/vallur/ba2856722600cc7a6653.js"></script>
+</div>
+
+
+<p>After explaining the benefits of the new API. It is time to show the code that does the actual serialization and deserialization for Banyan and check out their performance.</p>
+
+<p>There are two use cases of objects i tend to use in Banyan commonly they are ArrayList for storing single items attribute or leaf values or a Map to store the values that can live in a branch which can protentially be deep.</p>
+
+<p>In this blog i shall work with only ArrayList and my own RandomItem. Its schema looks like below with getter and setters.</p>
+
+<div style="height:330px;overflow-y:scroll">
+<script src="https://gist.github.com/vallur/d1e33458708115d817c8.js"></script>
+</div>
+
+
+<p>Now for the code fragment used for the perf test of the new BinaryObjectSerializer</p>
+
+<div style="height:330px;overflow-y:scroll">
+<script src="https://gist.github.com/vallur/ffc0a293afb670973e9a.js"></script>
+</div>
+
+
+<p>Now for the actual results and data size after serialization for a total call count of 10,000,000.</p>
+
+<p>The list size of 1000 count the metrics are below</p>
+
+<table>
+<thead>
+<tr>
+<th>API    </th>
+<th>  Byte Size  </th>
+<th>  Performance AVG </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Banyan </td>
+<td> 111,965 </td>
+<td> 4 ms </td>
+</tr>
+<tr>
+<td><a href="https://code.google.com/p/protobuf/">Protobuf</a> </td>
+<td> 247,981 </td>
+<td> 4 ms </td>
+</tr>
+<tr>
+<td><a href="http://ruedigermoeller.github.io/fast-serialization/">Fast</a> </td>
+<td> 120,490 </td>
+<td> 7 ms </td>
+</tr>
+<tr>
+<td>Java </td>
+<td> 204,135 </td>
+<td> 45 ms </td>
+</tr>
+</tbody>
+</table>
+
+
+<p>For a list size of 750 count the metrics are below</p>
+
+<table>
+<thead>
+<tr>
+<th>API    </th>
+<th>  Byte Size  </th>
+<th>  Performance AVG </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Banyan </td>
+<td> 78,333 </td>
+<td> 4 ms </td>
+</tr>
+<tr>
+<td><a href="https://code.google.com/p/protobuf/">Protobuf</a> </td>
+<td> 184,404 </td>
+<td> 3 ms </td>
+</tr>
+<tr>
+<td><a href="http://ruedigermoeller.github.io/fast-serialization/">Fast</a> </td>
+<td> 84,467 </td>
+<td> 5 ms </td>
+</tr>
+</tbody>
+</table>
+
+
+<p> For a list size of 500 count the metrics are below</p>
+
+<table>
+<thead>
+<tr>
+<th>API    </th>
+<th>  Byte Size  </th>
+<th>  Performance AVG </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Banyan </td>
+<td> 52,401 </td>
+<td> 2 ms </td>
+</tr>
+<tr>
+<td><a href="https://code.google.com/p/protobuf/">Protobuf</a> </td>
+<td> 123,468 </td>
+<td> 2 ms </td>
+</tr>
+<tr>
+<td><a href="http://ruedigermoeller.github.io/fast-serialization/">Fast</a> </td>
+<td> 56,537 </td>
+<td> 2 ms </td>
+</tr>
+</tbody>
+</table>
+
+
+<p>  For a list size of 250 count the metrics are below</p>
+
+<table>
+<thead>
+<tr>
+<th>API    </th>
+<th>  Byte Size  </th>
+<th>  Performance AVG </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Banyan </td>
+<td> 26,288 </td>
+<td> 1 ms </td>
+</tr>
+<tr>
+<td><a href="https://code.google.com/p/protobuf/">Protobuf</a> </td>
+<td> 61,471 </td>
+<td> 1 ms </td>
+</tr>
+<tr>
+<td><a href="http://ruedigermoeller.github.io/fast-serialization/">Fast</a> </td>
+<td> 28,211 </td>
+<td> 1 ms </td>
+</tr>
+</tbody>
+</table>
+
+
+<p> Now going and looking at the more realistic use cases</p>
+
+<p>   For a list size of 100 count the metrics are below</p>
+
+<table>
+<thead>
+<tr>
+<th>API    </th>
+<th>  Byte Size  </th>
+<th>  Performance AVG </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Banyan </td>
+<td> 104,40 </td>
+<td> 550 µs </td>
+</tr>
+<tr>
+<td><a href="https://code.google.com/p/protobuf/">Protobuf</a> </td>
+<td> 248,84 </td>
+<td> 450 µs </td>
+</tr>
+<tr>
+<td><a href="http://ruedigermoeller.github.io/fast-serialization/">Fast</a> </td>
+<td> 112,44 </td>
+<td> 1 ms </td>
+</tr>
+</tbody>
+</table>
+
+
+<pre><code>For a list size of 25 count the metrics are below 
+</code></pre>
+
+<table>
+<thead>
+<tr>
+<th>API    </th>
+<th>  Byte Size  </th>
+<th>  Performance AVG </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Banyan </td>
+<td> 25,67 </td>
+<td> 120 µs </td>
+</tr>
+<tr>
+<td><a href="https://code.google.com/p/protobuf/">Protobuf</a> </td>
+<td> 62,03 </td>
+<td> 100 µs </td>
+</tr>
+<tr>
+<td><a href="http://ruedigermoeller.github.io/fast-serialization/">Fast</a> </td>
+<td> 27,98 </td>
+<td> 154 µs </td>
+</tr>
+</tbody>
+</table>
+
+
+<pre><code> For a list size of 1 count the metrics are below 
+</code></pre>
+
+<table>
+<thead>
+<tr>
+<th>API    </th>
+<th>  Byte Size  </th>
+<th>  Performance AVG </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Banyan </td>
+<td> 103 </td>
+<td> 7 µs </td>
+</tr>
+<tr>
+<td><a href="https://code.google.com/p/protobuf/">Protobuf</a> </td>
+<td> 238 </td>
+<td> 7 µs </td>
+</tr>
+<tr>
+<td><a href="http://ruedigermoeller.github.io/fast-serialization/">Fast</a> </td>
+<td> 140 </td>
+<td> 10 µs </td>
+</tr>
+</tbody>
+</table>
+
+
+<p>As you can see from the metrics above all three are comparable on performance. Protobuf is a little faster as it is more declarative. I shall update the post with more fine tuning to acheive better performance.</p>
+
+<p> Now i just need to have support for serializing map types with these super great performance numbers - i get to jump to my next great solution. I am super excited on seeing these metrics. I would be willing to make this genenral purpose if anyone is interested in getting more about this. Based on these metrics I decided to write my own Serialization API's as listed above and they will be avialbale in the banyan repository soon.</p>
+
+<div class="row">   
+    <div class="span9 column">
+            <p class="pull-right"> <a href="/blog/Serialization" title="Previous Post: Serialization - What to choose?."><i class="icon-chevron-left"></i></a>          <a href="/blog/RightAPIToChooseForCall" title="Next Post: Rest Over JSON or plain old sockets for communication"><i class="icon-chevron-right"></i></a>      </p>  
+    </div>
+</div>
+
+
+
+
+<p><div class="row"> <br/>
+    <div class="span9 columns">  <br/>
+        <h2>Comments Section</h2>
+        <p>Feel free to comment on the post but keep it clean and on topic.</p>
+        <div id="fb-root"></div>
+<script>(function(d, s, id) {
+  var js, fjs = d.getElementsByTagName(s)[0];
+  if (d.getElementById(id)) return;
+  js = d.createElement(s); js.id = id;
+  js.src = "//connect.facebook.net/en_US/sdk.js#xfbml=1&amp;version=v2.0";
+  fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));</script>
+<div class="fb-comments" data-href="http://vallur.github.io/blog/Serialization-continues" data-numposts="5" data-width="700" data-colorscheme="light"></div>
+</div></p>
+
+<p><!-- Twitter -->
+<script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src="//platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script></p>
+
+<p><!-- Google + -->
+<script type="text/javascript">
+  (function() {
+    var po = document.createElement('script'); po.type = 'text/javascript'; po.async = true;
+    po.src = 'https://apis.google.com/js/plusone.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(po, s);
+  })();
+</script></p>
+		
+</div>
+
+		</div>		 
+	 </div>   
+	<div id="fb-root"></div>
+<script>(function(d, s, id) {
+  var js, fjs = d.getElementsByTagName(s)[0];
+  if (d.getElementById(id)) return;
+  js = d.createElement(s); js.id = id;
+  js.src = "//connect.facebook.net/en_US/sdk.js#xfbml=1&version=v2.0";
+  fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));</script>
+<script src="https://apis.google.com/js/platform.js" async defer></script>
+<script src="//platform.linkedin.com/in.js" type="text/javascript">lang: en_US</script>
+<footer class="footer">
+  <div class="container">
+<!--<div class="row">-->&nbsp;<div class="g-plusone"></div><script type="IN/Share" data-counter="right"></script>&nbsp;<div class="fb-like" data-href="http://vallur.github.com/blog/Serialization-continues" data-layout="button_count" data-action="like" data-show-faces="false" data-share="false"></div>&nbsp;<iframe class="github-btn" src="http://ghbtns.com/github-btn.html?user=vallur&repo=vallur.github.com&type=watch&count=true" allowtransparency="true" frameborder="0" scrolling="0" width="80px" height="20px"></iframe>&nbsp;<iframe class="github-btn" src="http://ghbtns.com/github-btn.html?user=vallur&repo=vallur.github.com&type=fork&count=true" allowtransparency="true" frameborder="0" scrolling="0" width="98px" height="20px"></iframe>	<p class="pull-right"> <a href="/blog/Serialization" title="Previous Post: Serialization - What to choose?.">&laquo; Previous Blog Post</a> 	  |  <a href="#">Back to top</a>  |   	<a href="/blog/RightAPIToChooseForCall" title="Next Post: Rest Over JSON or plain old sockets for communication">Next Blog Post &raquo; </a> 	 </p>        
+	<p>Page last generated on October 15, 2014</p>
+	<p>If need be, <a href="https://github.com/vallur/Feedback/issues/new" title="Leave feedback for Vallur"  target="_blank" >leave me some feedback</a>.</p>	
+	<script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src="//platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script>	
+	<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-53607051-1', 'auto');
+  ga('send', 'pageview');
+
+</script>
+  </div>
+</footer>
+
+    <script type="text/javascript" src="http://platform.twitter.com/widgets.js"></script>    
+    
+	<script src="/js/custom.js" type="text/javascript"></script>	
+	
+	<script type="text/javascript">
+		/* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+		var disqus_shortname = 'vallur'; // required: replace example with your forum shortname
+
+		/* * * DON'T EDIT BELOW THIS LINE * * */
+		(function () {
+			var s = document.createElement('script'); s.async = true;
+			s.type = 'text/javascript';
+			s.src = 'http://' + disqus_shortname + '.disqus.com/count.js';
+			(document.getElementsByTagName('HEAD')[0] || document.getElementsByTagName('BODY')[0]).appendChild(s);
+		}());
+	</script>
+	
+	<!-- Google Analytics -->
+	<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-53607051-1', 'auto');
+  ga('send', 'pageview');
+
+</script>
+  </body>
+</html>

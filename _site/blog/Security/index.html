@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html class="fuelux" lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Handling security in Java</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <link href="http://fuelcdn.com/fuelux/2.2/css/fuelux.css" rel="stylesheet" /> 
+	<link href="http://fuelcdn.com/fuelux/2.2/css/fuelux-responsive.css" rel="stylesheet" />
+	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js" type="text/javascript"></script>
+	<script src="http://fuelcdn.com/fuelux/2.2/loader.min.js" type="text/javascript"></script>
+    <link href="/css/docs.css" rel="stylesheet">
+    <link href="/js/google-code-prettify/prettify.css" rel="stylesheet">	
+	<link rel="shortcut icon" href="/favicon.ico">    
+  </head>
+  <body data-spy="scroll" data-target=".subnav" data-offset="50">
+	<div class="navbar navbar-fixed-top">
+  <div class="navbar-inner">
+	<div class="container">
+	  <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+		<span class="icon-bar"></span>
+		<span class="icon-bar"></span>
+		<span class="icon-bar"></span>
+	  </a>
+	  <a class="brand" href="http://Vallur.github.com">Blog Dedicated for Banyan. Under Construction!</a>
+	  <div class="nav-collapse">
+		<ul class="nav">		  
+		  <li class="">
+			<a href="http://vallur.github.com"><i class="icon-home"></i> Home</a>
+		  </li>
+		  <li class="dropdown">
+			<a href="#" class="dropdown-toggle" data-toggle="dropdown"><i class="icon-comment"></i> Social <b class="caret"></b></a>
+				<ul class="dropdown-menu">										
+					<li class=""><a href="http://github.com/banyan" rel="tooltip" title="Go to github.com/erjjones" target="_blank">GitHub</a></li>
+					<li class=""><a href="http://www.linkedin.com/pub/vallur-narasimhan/5/219/570/" rel="tooltip" title="Go to LinkedIn profile" target="_blank">LinkedIn</a></li>										
+				</ul>
+			 </li>
+		</ul>		
+	  </div>
+	</div>
+  </div>
+</div>
+  
+	<div class="container">	
+		<div class="marketing">
+		<div class="content">    
+	<script src="https://apis.google.com/js/platform.js" async defer></script>
+<script src="//platform.linkedin.com/in.js" type="text/javascript">lang: en_US</script>
+<div id="fb-root"></div>
+<script>(function(d, s, id) {
+  var js, fjs = d.getElementsByTagName(s)[0];
+  if (d.getElementById(id)) return;
+  js = d.createElement(s); js.id = id;
+  js.src = "//connect.facebook.net/en_US/sdk.js#xfbml=1&version=v2.0";
+  fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));</script>
+<script type="text/javascript">
+		/* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+		var disqus_shortname = 'vallur'; // required: replace example with your forum shortname
+		var disqus_identifier = '/blog/Security';
+		var disqus_url = 'http://vallur.github.com/blog/Security';
+
+		/* * * DON'T EDIT BELOW THIS LINE * * */
+		(function () {
+			var s = document.createElement('script'); s.async = true;
+			s.type = 'text/javascript';
+			s.src = 'http://' + disqus_shortname + '.disqus.com/count.js';
+			(document.getElementsByTagName('HEAD')[0] || document.getElementsByTagName('BODY')[0]).appendChild(s);
+		}());
+	</script>
+<br/>
+		<h1>Handling security in Java</h1>
+<br/>
+<!--	<div class="span3 column">-->
+		<strong>August  8, 2014 <small>.  <a href="http://vallur.github.com/blog/Security#disqus_thread" data-disqus-identifier="/blog/Security">Comments</a></small></strong>
+		<br/><small>Tags:  <a href="/tags/tomcat," title="View posts tagged with &quot;tomcat,&quot;"><u>tomcat,</u></a>     <a href="/tags/security," title="View posts tagged with &quot;security,&quot;"><u>security,</u></a>     <a href="/tags/java" title="View posts tagged with &quot;java&quot;"><u>java</u></a>     <a href="/tags/8" title="View posts tagged with &quot;8&quot;"><u>8</u></a>    </small>
+<!--	</div>		-->
+<!--	<div class="span6 column">-->
+		<p class="pull-right"> <a href="/blog/Gc" title="Previous Post: JVM options for performance and GC"><i class="icon-chevron-left"></i></a> 	    	<a href="/blog/Thread-Pool-Executor" title="Next Post: Thread Pool Executor"><i class="icon-chevron-right"></i></a> 	 </p>  
+<!--	</div>-->
+</div>
+<!--<div class="row">-->&nbsp;<div class="g-plusone"></div><script type="IN/Share" data-counter="right"></script>&nbsp;<div class="fb-like" data-href="http://vallur.github.com/blog/Security" data-layout="button_count" data-action="like" data-show-faces="false" data-share="false"></div>&nbsp;<iframe class="github-btn" src="http://ghbtns.com/github-btn.html?user=vallur&repo=vallur.github.com&type=watch&count=true" allowtransparency="true" frameborder="0" scrolling="0" width="80px" height="20px"></iframe>&nbsp;<iframe class="github-btn" src="http://ghbtns.com/github-btn.html?user=vallur&repo=vallur.github.com&type=fork&count=true" allowtransparency="true" frameborder="0" scrolling="0" width="98px" height="20px"></iframe>
+<!--</div>-->
+<br/><hr>
+
+    <p>The first thing we need to worry about while developing a new software is handling security.
+There are many ways to solve this problem.</p>
+
+<h2>Active Directory</h2>
+
+<p>You can provide a unique encrypted client id for each client. The client and server will have to authenticate each other using the clientID and possibly using a secure channel using SSH or over SSL. In which case the server can accept the username and password and authenticate it towards LDAP using the code below</p>
+
+<script src="https://gist.github.com/vallur/0faa2623676185492e4b.js"></script>
+
+
+<p>If you are using a client API to communicate to server application. The client can access the logged on user name using the property to perform just authorization and not authentication by using the User Details from the LDAPAuthenticationProvider class above</p>
+
+<pre><code>System.getProperty("user.name")
+</code></pre>
+
+<p>Be mindful that the System.Property can be changed by the client java code so spoofing it from another java class is easy.</p>
+
+<h2>Single Sign On</h2>
+
+<p>It is not fair to close the topic without talking about Single sign on for security. It is difficult just as you might need to have the right permissions to create a key tab file for each server where your service is deployed. You can achieve this by using the <a href="http://docs.oracle.com/javase/jndi/tutorial/ldap/security/gssapi.html">GSS</a> and <a href="http://docs.oracle.com/javase/8/docs/technotes/guides/security/jaas/JAASRefGuide.html">JAAS</a> api.</p>
+
+<p>We will be looking at Kerbros authentication with tomcat how-to.</p>
+
+<p>Step 1 is the map a service principal name to a user account. A service principal name (SPN) is the name by which a client uniquely identifies an instance of a service.</p>
+
+<pre><code>SPN format: &lt;service class&gt;/&lt;host&gt;:&lt;port&gt;/&lt;service name&gt;
+example:    Banyan/somehost.domain.com
+</code></pre>
+
+<p>In the SPN the port and service names are optional. Service SPN must be registered on the user or computer account that the service instance will use to log on. SPN registration is done by running with domain administrator privileges.</p>
+
+<p>The setSPN command can be used to register a SPN for a service.</p>
+
+<pre><code>setspn -a banyan/somehost.domain.com domainUser
+</code></pre>
+
+<p>Now that we have registered the SPN we need to generate a key tab file that contains the private key for the service account which the server will use for authentication. Use the <a href="http://technet.microsoft.com/en-us/library/cc753771.aspx">ktpass</a> app to do this.</p>
+
+<pre><code>ktpass /out c:\tomcat.keytab /mapuser domainUser@SOMEDOMAIN.COM
+          /princ banyan/somehost.somedomain.coml@SOMEDOMAIN.COM
+          /pass password /kvno 0
+</code></pre>
+
+<p>Now we will have to create the krb5.ini and the JAAS.conf for authentication and authorization</p>
+
+<p>KRB5.ini</p>
+
+<pre><code>[libdefaults]
+default_realm = SOMEDOMAIN.COM
+default_keytab_name = FILE: c:\tomcat.keytab 
+default_tkt_enctypes = rc4-hmac,aes256-cts-hmac-sha1-96,aes128-cts-hmac-sha1-96
+default_tgs_enctypes = rc4-hmac,aes256-cts-hmac-sha1-96,aes128-cts-hmac-sha1-96
+forwardable=true
+
+[realms]
+SOMEDOMAIN.COM = {
+        kdc = somehost.somedomain.com:88
+}
+
+[domain_realm]
+somedomain.com= SOMEDOMAIN.COM
+.somedomain.com= SOMEDOMAIN.COM
+</code></pre>
+
+<p>JAAS.conf file
+```
+com.sun.security.jgss.krb5.initiate {
+    com.sun.security.auth.module.Krb5LoginModule required
+    doNotPrompt=true
+    principal="banyan/somehost.somedomain.coml@SOMEDOMAIN.COM"
+    useKeyTab=true
+    keyTab=" c:\tomcat.keytab"
+    storeKey=true;
+};</p>
+
+<p>com.sun.security.jgss.krb5.accept {
+    com.sun.security.auth.module.Krb5LoginModule required
+    doNotPrompt=true
+    principal="banyan/somehost.somedomain.coml@SOMEDOMAIN.COM"
+    useKeyTab=true
+    keyTab=" c:\tomcat.keytab"
+    storeKey=true;
+};
+```</p>
+
+<p>The krb5.conf location can be set by setting the property <code>java.security.krb5.conf</code>.
+The JAAS.conf location can be set by setting the property <code>java.security.auth.login.config</code>.</p>
+
+<p>Now for the final part we need to change the server.xml and set the authentication valve.</p>
+
+<p>Add the below setting to the server.xml file as part of the Host node</p>
+
+<pre><code>&lt;valve className="org.apache.catalina.authenticator.SpnegoAuthenticator" loginConfigName="com.sun.security.jgss.krb5.accept" /&gt;
+</code></pre>
+
+<p>By setting the above credentials tomcat will be able to authenticate using the browser using single sign on. Now we will be able to access the remote user from the servlet or asp using the code below.</p>
+
+<pre><code>request.getRemoteUser();
+request.getUserPrincipal().getName();
+</code></pre>
+
+<p>This will work in both windows as well as linux.</p>
+
+<h2>Secure Shell</h2>
+
+<p>You can look @ <a href="http://en.wikipedia.org/wiki/Secure_Shell">wikipedea</a> about SSH and making secure connections between two servers. This is only a partial solution where you say who ever has access to the client/web server that communicates with your server has access to the data. The client still might need to do authentication and authorization. This is also a hammer as you will be incurring the cost of encryption and decryption on all the data communication between the servers.</p>
+
+<p>Handle security in a custom way and this will not be single sign on and the data will be kind of secure  as long as no one gets hold of the client code and server code.</p>
+
+<div class="row">   
+    <div class="span9 column">
+            <p class="pull-right"> <a href="/blog/Gc" title="Previous Post: JVM options for performance and GC"><i class="icon-chevron-left"></i></a>           <a href="/blog/Thread-Pool-Executor" title="Next Post: Thread Pool Executor"><i class="icon-chevron-right"></i></a>      </p>  
+    </div>
+</div>
+
+
+
+
+<p><div class="row"> <br/>
+    <div class="span9 columns">  <br/>
+        <h2>Comments Section</h2>
+        <p>Feel free to comment on the post but keep it clean and on topic.</p>
+        <div id="fb-root"></div>
+<script>(function(d, s, id) {
+  var js, fjs = d.getElementsByTagName(s)[0];
+  if (d.getElementById(id)) return;
+  js = d.createElement(s); js.id = id;
+  js.src = "//connect.facebook.net/en_US/sdk.js#xfbml=1&amp;version=v2.0";
+  fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));</script>
+<div class="fb-comments" data-href="http://vallur.github.io/blog/Security" data-numposts="5" data-width="700" data-colorscheme="light"></div>
+</div></p>
+
+<p><!-- Twitter -->
+<script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src="//platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script></p>
+
+<p><!-- Google + -->
+<script type="text/javascript">
+  (function() {
+    var po = document.createElement('script'); po.type = 'text/javascript'; po.async = true;
+    po.src = 'https://apis.google.com/js/plusone.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(po, s);
+  })();
+</script></p>
+		
+</div>
+
+		</div>		 
+	 </div>   
+	<div id="fb-root"></div>
+<script>(function(d, s, id) {
+  var js, fjs = d.getElementsByTagName(s)[0];
+  if (d.getElementById(id)) return;
+  js = d.createElement(s); js.id = id;
+  js.src = "//connect.facebook.net/en_US/sdk.js#xfbml=1&version=v2.0";
+  fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));</script>
+<script src="https://apis.google.com/js/platform.js" async defer></script>
+<script src="//platform.linkedin.com/in.js" type="text/javascript">lang: en_US</script>
+<footer class="footer">
+  <div class="container">
+<!--<div class="row">-->&nbsp;<div class="g-plusone"></div><script type="IN/Share" data-counter="right"></script>&nbsp;<div class="fb-like" data-href="http://vallur.github.com/blog/Security" data-layout="button_count" data-action="like" data-show-faces="false" data-share="false"></div>&nbsp;<iframe class="github-btn" src="http://ghbtns.com/github-btn.html?user=vallur&repo=vallur.github.com&type=watch&count=true" allowtransparency="true" frameborder="0" scrolling="0" width="80px" height="20px"></iframe>&nbsp;<iframe class="github-btn" src="http://ghbtns.com/github-btn.html?user=vallur&repo=vallur.github.com&type=fork&count=true" allowtransparency="true" frameborder="0" scrolling="0" width="98px" height="20px"></iframe>	<p class="pull-right"> <a href="/blog/Gc" title="Previous Post: JVM options for performance and GC">&laquo; Previous Blog Post</a> 	  |  <a href="#">Back to top</a>  |   	<a href="/blog/Thread-Pool-Executor" title="Next Post: Thread Pool Executor">Next Blog Post &raquo; </a> 	 </p>        
+	<p>Page last generated on October 15, 2014</p>
+	<p>If need be, <a href="https://github.com/vallur/Feedback/issues/new" title="Leave feedback for Vallur"  target="_blank" >leave me some feedback</a>.</p>	
+	<script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src="//platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script>	
+	<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-53607051-1', 'auto');
+  ga('send', 'pageview');
+
+</script>
+  </div>
+</footer>
+
+    <script type="text/javascript" src="http://platform.twitter.com/widgets.js"></script>    
+    
+	<script src="/js/custom.js" type="text/javascript"></script>	
+	
+	<script type="text/javascript">
+		/* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+		var disqus_shortname = 'vallur'; // required: replace example with your forum shortname
+
+		/* * * DON'T EDIT BELOW THIS LINE * * */
+		(function () {
+			var s = document.createElement('script'); s.async = true;
+			s.type = 'text/javascript';
+			s.src = 'http://' + disqus_shortname + '.disqus.com/count.js';
+			(document.getElementsByTagName('HEAD')[0] || document.getElementsByTagName('BODY')[0]).appendChild(s);
+		}());
+	</script>
+	
+	<!-- Google Analytics -->
+	<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-53607051-1', 'auto');
+  ga('send', 'pageview');
+
+</script>
+  </body>
+</html>

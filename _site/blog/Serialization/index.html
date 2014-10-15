@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html class="fuelux" lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Serialization - What to choose?.</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <link href="http://fuelcdn.com/fuelux/2.2/css/fuelux.css" rel="stylesheet" /> 
+	<link href="http://fuelcdn.com/fuelux/2.2/css/fuelux-responsive.css" rel="stylesheet" />
+	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js" type="text/javascript"></script>
+	<script src="http://fuelcdn.com/fuelux/2.2/loader.min.js" type="text/javascript"></script>
+    <link href="/css/docs.css" rel="stylesheet">
+    <link href="/js/google-code-prettify/prettify.css" rel="stylesheet">	
+	<link rel="shortcut icon" href="/favicon.ico">    
+  </head>
+  <body data-spy="scroll" data-target=".subnav" data-offset="50">
+	<div class="navbar navbar-fixed-top">
+  <div class="navbar-inner">
+	<div class="container">
+	  <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+		<span class="icon-bar"></span>
+		<span class="icon-bar"></span>
+		<span class="icon-bar"></span>
+	  </a>
+	  <a class="brand" href="http://Vallur.github.com">Blog Dedicated for Banyan. Under Construction!</a>
+	  <div class="nav-collapse">
+		<ul class="nav">		  
+		  <li class="">
+			<a href="http://vallur.github.com"><i class="icon-home"></i> Home</a>
+		  </li>
+		  <li class="dropdown">
+			<a href="#" class="dropdown-toggle" data-toggle="dropdown"><i class="icon-comment"></i> Social <b class="caret"></b></a>
+				<ul class="dropdown-menu">										
+					<li class=""><a href="http://github.com/banyan" rel="tooltip" title="Go to github.com/erjjones" target="_blank">GitHub</a></li>
+					<li class=""><a href="http://www.linkedin.com/pub/vallur-narasimhan/5/219/570/" rel="tooltip" title="Go to LinkedIn profile" target="_blank">LinkedIn</a></li>										
+				</ul>
+			 </li>
+		</ul>		
+	  </div>
+	</div>
+  </div>
+</div>
+  
+	<div class="container">	
+		<div class="marketing">
+		<div class="content">    
+	<script src="https://apis.google.com/js/platform.js" async defer></script>
+<script src="//platform.linkedin.com/in.js" type="text/javascript">lang: en_US</script>
+<div id="fb-root"></div>
+<script>(function(d, s, id) {
+  var js, fjs = d.getElementsByTagName(s)[0];
+  if (d.getElementById(id)) return;
+  js = d.createElement(s); js.id = id;
+  js.src = "//connect.facebook.net/en_US/sdk.js#xfbml=1&version=v2.0";
+  fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));</script>
+<script type="text/javascript">
+		/* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+		var disqus_shortname = 'vallur'; // required: replace example with your forum shortname
+		var disqus_identifier = '/blog/Serialization';
+		var disqus_url = 'http://vallur.github.com/blog/Serialization';
+
+		/* * * DON'T EDIT BELOW THIS LINE * * */
+		(function () {
+			var s = document.createElement('script'); s.async = true;
+			s.type = 'text/javascript';
+			s.src = 'http://' + disqus_shortname + '.disqus.com/count.js';
+			(document.getElementsByTagName('HEAD')[0] || document.getElementsByTagName('BODY')[0]).appendChild(s);
+		}());
+	</script>
+<br/>
+		<h1>Serialization - What to choose?.</h1>
+<br/>
+<!--	<div class="span3 column">-->
+		<strong>August  9, 2014 <small>.  <a href="http://vallur.github.com/blog/Serialization#disqus_thread" data-disqus-identifier="/blog/Serialization">Comments</a></small></strong>
+		<br/><small>Tags:  <a href="/tags/java," title="View posts tagged with &quot;java,&quot;"><u>java,</u></a>     <a href="/tags/serialization" title="View posts tagged with &quot;serialization&quot;"><u>serialization</u></a>    </small>
+<!--	</div>		-->
+<!--	<div class="span6 column">-->
+		<p class="pull-right"> <a href="/blog/Protobuf" title="Previous Post: Java Object Binary Serialization Metrics using ProtoBuf"><i class="icon-chevron-left"></i></a> 	    	<a href="/blog/Serialization-continues" title="Next Post: Serialization - Continues...."><i class="icon-chevron-right"></i></a> 	 </p>  
+<!--	</div>-->
+</div>
+<!--<div class="row">-->&nbsp;<div class="g-plusone"></div><script type="IN/Share" data-counter="right"></script>&nbsp;<div class="fb-like" data-href="http://vallur.github.com/blog/Serialization" data-layout="button_count" data-action="like" data-show-faces="false" data-share="false"></div>&nbsp;<iframe class="github-btn" src="http://ghbtns.com/github-btn.html?user=vallur&repo=vallur.github.com&type=watch&count=true" allowtransparency="true" frameborder="0" scrolling="0" width="80px" height="20px"></iframe>&nbsp;<iframe class="github-btn" src="http://ghbtns.com/github-btn.html?user=vallur&repo=vallur.github.com&type=fork&count=true" allowtransparency="true" frameborder="0" scrolling="0" width="98px" height="20px"></iframe>
+<!--</div>-->
+<br/><hr>
+
+    <p>Serialization of objects impacts the performance of a service considerably. The response time for receiving/sending objects is directly linked to the time taken for serialization and deserialization. If the serialized bytes are more that impacts the time spent on the wire. The key to choose the right technology should be based on 3 factors no loss of data, serialization byte size and time taken for serialization and deserialization.</p>
+
+<p><img src="/img/posts/Serialization.png" alt="Java Serialization" /></p>
+
+<p>Serialization is the process of converting the object in memory into a byte or char stream so that it can be saved to disk or sent over the wire.</p>
+
+<p>Deserialization is the process of converting a byte stream or char stream into objects.</p>
+
+<p>There are two design decision we need to take while choosing the right format.</p>
+
+<ul>
+<li>Byte Stream</li>
+</ul>
+
+
+<p>We choose byte stream to reduce the size of the object or because that is the default supported by the programming language out of the box. When we want to consider performance byte stream would be the first choice. Java Serialization will defenitely not be the right serialization platform to use as it is very slow and very descriptive.</p>
+
+<p>There are many choices to make in order to pick the right serialization API
+other than java serialization.</p>
+
+<p><strong>Google Protobuf</strong></p>
+
+<pre><code>Google's protobuf is extremely fast.
+
+The way it works is by generating a custom serialization class for the object. It writes a number for each type that is serialized and the value. Hence considerbly reducing the type information that is written. The binary stream written by protobuf is propereitary you will have to use the same objects builder to de-serialize the object back. Protobuf is very ideal as it supports for C++, java and other languages as you can use the same protoc compiler to generate the language specific code to serialize/deserialize the objects. 
+Major disadvantage is, it cannot support Generic object types or deep objects like Map in a class. This makes it not suitable or would put more work on the client and server API to convert the generic objects into strong typed objects for protobuf serialization. 
+</code></pre>
+
+<p><strong>GSON and others</strong></p>
+
+<pre><code>There are other fast binary serializtion API's like GSON in the market. These seem to mitigate the problem Protobuf has by allowing the developer to register the class before serializing it. Still we will have to write a general object serializer for the class of type Map. This makes it difficult for serializing deep objects. Our externalization code becomes very difficult. It would be better to write my own instead of using a generic serializer specific for a framework like GSON or simple jackson. Provided i can meet the performance of either of them.
+</code></pre>
+
+<p><strong>Fast Serialization</strong></p>
+
+<pre><code>The idea behind fast serialization is impressive. Some of the impressive features of fast serialization are
+- It is a drop in replacement for java serialization and is only slightly slower than protobuf (meassured in terms of under seconds ). 
+- It has class preregistered for all basic objects, types and array combination. 
+- Does convert boxed objects like Long into primitive type of long while serializing. 
+- Only stores the actual allocated size for a primitive type. For ex:- if you define a type as long and its actual value is 123 it only uses 2 bytes allocation to serialize it , 1 byte for storing the type and 1 for the actual value of 123.
+- Repetitive strings in object are serialized and written once naturally allowing for compression.
+- Most strings in the north american or the europian subcontinent fall within the 254 charectar mark. But we use UTF-8 as the charecter set to store them - which makes it as using 2 bytes for every char. FST uses 1 byte to store all char types and uses 3 bytes for any occassional double byte char.
+
+It almost felt like some one read my mind today and went back in time to write it ;). The data being compressed using this is smaller in size than protobuf and almost the same size or even better than lz4 compression with more speed.
+
+It is not fair if i don't mention the disadvantages even though i like it a lot. The developer uses UnSafe methods to acheive the speed of serialization. I am trying to push its limits. It is working in a fantastic way when trying to serialize and de-serialize objects of size less than 2 MB which is 10 times bigger in size when using java serialization. Performance degradation is seen when the object size goes higher, it is still able to serialize and deserialize within times lesser than java serialization.
+</code></pre>
+
+<p>Let us look at some code to see how easy it is to use FSTSerialization</p>
+
+<p><strong><em>Serialization Code</em></strong></p>
+
+<script src="https://gist.github.com/vallur/f0f67b213f9a56a715a3.js"></script>
+
+
+<p><strong><em>De-Serialization Code</em></strong></p>
+
+<script src="https://gist.github.com/vallur/0a2f938593bf5fa56812.js"></script>
+
+
+<p>In the above example the same set of bytes are used for serialization as well as de-serialization so constant known stress for GC.</p>
+
+<p>Some metrics while doing serialization and deserialization between client and server on the same machine using FST and Banyan random rows fetch. The data size is in the low 1k range and doesnot include network traffic time. This should give you an idea about the speed of doing search operations in Banyan.</p>
+
+<p><img src="/img/posts/JMXSerialize.png" alt="FSTSerialize" /></p>
+
+<p>The max processing time is because of my MAC crying and saying not enough memory.</p>
+
+<ul>
+<li>Char stream</li>
+</ul>
+
+
+<p>The char stream way of serialization is slow as they are either verbose or evrything is converted into double byte strings. Any soultion using char stream opposed to byte stream will be atleast two time slower for simple array copy and network buffer transfer as char in java uses double byte by default.</p>
+
+<p><strong>XML</strong>
+XML is usually too verbose as it has to have start and end tags along with the name and value attributes to make it readable. Also to store in xml we will have to escape the escase chars makes the string manipulation on large blobs very slow, considering that strings are immutable in java. It is simple to read follows a strong schema and it also incurs the cost of validation of input as the different types could have garbage values and type mismaches. Easy for other languages to support.</p>
+
+<p><strong>JSON</strong>
+Much simpler than XML and very easy to read. Too less of a charectars to escape. Easy for other languages to support. Can be represented in a huge hashmap lke object type as it needs the Key and value pair combination to mostly make it readable. This also is verbose but less than XML. Time taken for serialization and deserialization is less but considerable higher than binary format. Easy for other languages to support.</p>
+
+<p><strong>Table</strong>
+When trying to read or write tabular data it is a fair choice to choose this format, where the first row is the columns and consecutive rows are values. It is way simpler than the above two to interpret. The disadvantage is not all the data we read and write is tabular in format. If choosing CSV or tab it is easier for other languages to support.</p>
+
+<p><strong><em>Conclusion</em></strong>
+I am thinking of using a combination of the three to support a wide range of audience. To start with to give a rock solid product, I can use Fast Serialization with binary stream and later while developing admin tools can have support for tabular for single row and multi row select from singe table and JSON while trying to select graph data. This would make php and javascript client's happy.</p>
+
+<p><strong><em>Disclaimer</em></strong>
+The suggestions provided are suitable for Banyan and should not be considered as a defacto for all applications.</p>
+
+<div class="row">   
+    <div class="span9 column">
+            <p class="pull-right"> <a href="/blog/Protobuf" title="Previous Post: Java Object Binary Serialization Metrics using ProtoBuf"><i class="icon-chevron-left"></i></a>            <a href="/blog/Serialization-continues" title="Next Post: Serialization - Continues...."><i class="icon-chevron-right"></i></a>      </p>  
+    </div>
+</div>
+
+
+
+
+<p><div class="row"> <br/>
+    <div class="span9 columns">  <br/>
+        <h2>Comments Section</h2>
+        <p>Feel free to comment on the post but keep it clean and on topic.</p>
+        <div id="fb-root"></div>
+<script>(function(d, s, id) {
+  var js, fjs = d.getElementsByTagName(s)[0];
+  if (d.getElementById(id)) return;
+  js = d.createElement(s); js.id = id;
+  js.src = "//connect.facebook.net/en_US/sdk.js#xfbml=1&amp;version=v2.0";
+  fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));</script>
+<div class="fb-comments" data-href="http://vallur.github.io/blog/Serialization" data-numposts="5" data-width="700" data-colorscheme="light"></div>
+</div></p>
+
+<p><!-- Twitter -->
+<script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src="//platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script></p>
+
+<p><!-- Google + -->
+<script type="text/javascript">
+  (function() {
+    var po = document.createElement('script'); po.type = 'text/javascript'; po.async = true;
+    po.src = 'https://apis.google.com/js/plusone.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(po, s);
+  })();
+</script></p>
+		
+</div>
+
+		</div>		 
+	 </div>   
+	<div id="fb-root"></div>
+<script>(function(d, s, id) {
+  var js, fjs = d.getElementsByTagName(s)[0];
+  if (d.getElementById(id)) return;
+  js = d.createElement(s); js.id = id;
+  js.src = "//connect.facebook.net/en_US/sdk.js#xfbml=1&version=v2.0";
+  fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));</script>
+<script src="https://apis.google.com/js/platform.js" async defer></script>
+<script src="//platform.linkedin.com/in.js" type="text/javascript">lang: en_US</script>
+<footer class="footer">
+  <div class="container">
+<!--<div class="row">-->&nbsp;<div class="g-plusone"></div><script type="IN/Share" data-counter="right"></script>&nbsp;<div class="fb-like" data-href="http://vallur.github.com/blog/Serialization" data-layout="button_count" data-action="like" data-show-faces="false" data-share="false"></div>&nbsp;<iframe class="github-btn" src="http://ghbtns.com/github-btn.html?user=vallur&repo=vallur.github.com&type=watch&count=true" allowtransparency="true" frameborder="0" scrolling="0" width="80px" height="20px"></iframe>&nbsp;<iframe class="github-btn" src="http://ghbtns.com/github-btn.html?user=vallur&repo=vallur.github.com&type=fork&count=true" allowtransparency="true" frameborder="0" scrolling="0" width="98px" height="20px"></iframe>	<p class="pull-right"> <a href="/blog/Protobuf" title="Previous Post: Java Object Binary Serialization Metrics using ProtoBuf">&laquo; Previous Blog Post</a> 	  |  <a href="#">Back to top</a>  |   	<a href="/blog/Serialization-continues" title="Next Post: Serialization - Continues....">Next Blog Post &raquo; </a> 	 </p>        
+	<p>Page last generated on October 15, 2014</p>
+	<p>If need be, <a href="https://github.com/vallur/Feedback/issues/new" title="Leave feedback for Vallur"  target="_blank" >leave me some feedback</a>.</p>	
+	<script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src="//platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script>	
+	<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-53607051-1', 'auto');
+  ga('send', 'pageview');
+
+</script>
+  </div>
+</footer>
+
+    <script type="text/javascript" src="http://platform.twitter.com/widgets.js"></script>    
+    
+	<script src="/js/custom.js" type="text/javascript"></script>	
+	
+	<script type="text/javascript">
+		/* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+		var disqus_shortname = 'vallur'; // required: replace example with your forum shortname
+
+		/* * * DON'T EDIT BELOW THIS LINE * * */
+		(function () {
+			var s = document.createElement('script'); s.async = true;
+			s.type = 'text/javascript';
+			s.src = 'http://' + disqus_shortname + '.disqus.com/count.js';
+			(document.getElementsByTagName('HEAD')[0] || document.getElementsByTagName('BODY')[0]).appendChild(s);
+		}());
+	</script>
+	
+	<!-- Google Analytics -->
+	<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-53607051-1', 'auto');
+  ga('send', 'pageview');
+
+</script>
+  </body>
+</html>
